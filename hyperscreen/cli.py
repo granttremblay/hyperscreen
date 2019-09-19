@@ -35,6 +35,7 @@ def clean(evt1_file):
     tapscreen_results_dict = obs.tapscreen()
     #hc.image(x[survival_mask],y[survival_mask], title='{} | {} | {}'.format(obs.obsid, obs.target, obs.numevents), show=False, savepath="/Users/grant/Desktop/hyperplots/{}.pdf".format(obs.obsid))
     #print(tapscreen_results_dict["Percent improvement"])
+    return tapscreen_results_dict
 
 
 def main():
@@ -59,8 +60,9 @@ def main():
     # p.close()
     # p.join()
 
-    for obs in evt1_files[:1]:
-        clean(obs)
+    for obs in evt1_files:
+        results = clean(obs)
+        print(results)
 
 
 if __name__ == "__main__":
