@@ -4,20 +4,26 @@
 """Tests for `hyperscreen` package."""
 
 import pytest
+import os
 from hyperscreen import hyperscreen
 
 
-@pytest.fixture
-def response():
-    """Sample pytest fixture.
+HRC_I_TESTDATA = os.path.join(os.path.dirname(
+    __file__), 'data/hrcI_evt1_testfile.fits.gz')
+HRC_S_TESTDATA = os.path.join(os.path.dirname(
+    __file__), 'data/hrcS_evt1_testfile.fits.gz')
 
-    See more at: http://doc.pytest.org/en/latest/fixture.html
-    """
-    # import requests
-    # return requests.get('https://github.com/audreyr/cookiecutter-pypackage')
+print(HRC_I_TESTDATA)
 
 
-def test_content(response):
-    """Sample pytest test function with the pytest fixture as an argument."""
-    # from bs4 import BeautifulSoup
-    # assert 'GitHub' in BeautifulSoup(response.content).title.string
+# class MyTest(unittest.TestCase)
+
+#    def setUp(self):
+#         self.testfile = open(TESTDATA_FILENAME)
+#         self.testdata = self.testfile.read()
+
+#     def tearDown(self):
+#         self.testfile.close()
+
+#     def test_something(self):
+#         ....
