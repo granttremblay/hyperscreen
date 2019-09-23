@@ -19,8 +19,10 @@ warnings.filterwarnings("ignore",category =RuntimeWarning)
 
 class HRCevt1:
     '''
-    A more robust HRC EVT1 file. Includes explicit columns for every status bit, as well as calculated 
-    columns for the f_p, f_b plane for your boomerangs. Check out that cool new filtering algorithm!
+    A more robust HRC EVT1 file. Includes explicit 
+    columns for every status bit, as well as calculated 
+    columns for the f_p, f_b plane for your boomerangs. 
+    Check out that cool new filtering algorithm!
     '''
 
     def __init__(self, evtfile, as_dataframe = True):
