@@ -1,7 +1,10 @@
+
+.. image:: misc/hyperscreen_logo.png
+
+
 ===========
 hyperscreen
 ===========
-
 
 .. image:: https://img.shields.io/pypi/v/hyperscreen.svg
         :target: https://pypi.python.org/pypi/hyperscreen
@@ -30,7 +33,4 @@ Features
 Credits
 -------
 
-This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypackage`_ project template.
-
-.. _Cookiecutter: https://github.com/audreyr/cookiecutter
-.. _`audreyr/cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage
+Grant Tremblay, Ralph Kraft, Paul Nulsen, Dan Patnaude, & Alexey Vikhlinin

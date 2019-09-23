@@ -4,8 +4,6 @@
 """Tests for `hyperscreen` package."""
 
 import pytest
-
-
 from hyperscreen import hyperscreen
 
 

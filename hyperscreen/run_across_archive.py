@@ -2,39 +2,26 @@
 # -*- coding: utf-8 -*-
 
 """Console script for hyperscreen."""
+import multiprocessing
+import hyperscreen
 import os
 import sys
 import time
 import glob
 import argparse
 
-# from astropy.io import fits
-# from astropy.table import Table
-
-# import pandas as pd
-# import numpy as np
-# np.seterr(divide='ignore')
-
-# import matplotlib as mpl
-# import matplotlib.pyplot` as plt
-# from matplotlib.colors import LogNorm
-# from mpl_toolkits.mplot3d import Axes3D
-# from mpl_toolkits.axes_grid1 import make_axes_locatable
-# # from matplotlib.backends.backend_pdf import PdfPages
 
 import warnings
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
-import hyperscreen as hc
-import multiprocessing
-
 
 def clean(evt1_file):
-    obs = hc.HRCevt1(evt1_file, as_dataframe=True)
+    obs = hyperscreen.HRCevt1(evt1_file)
     print("Doing {}, {}, {} events".format(
         obs.obsid, obs.detector, obs.numevents))
     tapscreen_results_dict = obs.tapscreen()
-    #hc.image(x[survival_mask],y[survival_mask], title='{} | {} | {}'.format(obs.obsid, obs.target, obs.numevents), show=False, savepath="/Users/grant/Desktop/hyperplots/{}.pdf".format(obs.obsid))
+    hyperscreen.image(x[survival_mask], y[survival_mask], title='{} | {} | {}'.format(
+        obs.obsid, obs.target, obs.numevents), show=False, savepath="/Users/grant/Desktop/hyperplots/{}.pdf".format(obs.obsid))
     #print(tapscreen_results_dict["Percent improvement"])
     return tapscreen_results_dict
 
@@ -58,13 +45,16 @@ def main():
             "No EVT1 files round in supplied archive path ({})".format(archive_path))
 
     # p = multiprocessing.Pool()
-    # p.map(hyperclean, evt1_files[:4])
+    # p.map(clean, evt1_files[:4])
     # p.close()
     # p.join()
 
-    for obs in evt1_files:
-        results = clean(obs)
-        print(results)
+    for item in evt1_files:
+        print(item)
+
+    # for obs in evt1_files[4]:
+    #     results = clean(obs)
+    #     print(results)
 
 
 if __name__ == "__main__":
