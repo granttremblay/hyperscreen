@@ -9,7 +9,7 @@ install:
 script:
   - pytest
 
-deploy:
-  provider: pypi
-  user: "granttremblay"
-  password: "hungry-math-tribune-cite"
+# deploy:
+#   provider: pypi
+#   user: "granttremblay"
+#   password: ENCRYPT HERE
