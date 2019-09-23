@@ -7,7 +7,7 @@ hyperscreen
         :target: https://pypi.python.org/pypi/hyperscreen
 
 .. image:: https://img.shields.io/travis/granttremblay/hyperscreen.svg
-        :target: https://travis-ci.org/granttremblay/hyperscreen
+        :target: https://travis-ci.com/granttremblay/hyperscreen
 
 .. image:: https://readthedocs.org/projects/hyperscreen/badge/?version=latest
         :target: https://hyperscreen.readthedocs.io/en/latest/?badge=latest
