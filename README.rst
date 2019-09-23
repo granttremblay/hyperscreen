@@ -13,7 +13,7 @@ hyperscreen
         :target: https://hyperscreen.readthedocs.io/en/latest/?badge=latest
         :alt: Documentation Status
 
-
+[![Coverage Status](https://coveralls.io/repos/github/granttremblay/hyperscreen/badge.svg?branch=master)](https://coveralls.io/github/granttremblay/hyperscreen?branch=master)
 
 
 Python Boilerplate contains all the boilerplate you need to create a Python package.
