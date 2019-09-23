@@ -79,15 +79,15 @@ pygments_style = 'sphinx'
 todo_include_todos = False
 
 
-# -- Options for HTML output -------------------------------------------
+
+# -- Options for HTML output -------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
 
-# Theme options are theme-specific and customize the look and feel of a
-# theme further.  For a list of options available for each theme, see the
+# Theme options are theme-specific and customize the look and feel of a theme
+# further.  For a list of options available for each theme, see the
 # documentation.
 #
 # html_theme_options = {}
@@ -97,11 +97,35 @@ html_theme = 'alabaster'
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
+# Custom sidebar templates, must be a dictionary that maps document names
+# to template names.
+#
+# The default sidebars (for documents that don't match any pattern) are
+# defined by theme itself.  Builtin themes are using these templates by
+# default: ``['localtoc.html', 'relations.html', 'sourcelink.html',
+# 'searchbox.html']``.
+#
+# html_sidebars = {}
+
+
+import astropy_sphinx_theme
+html_theme_path = astropy_sphinx_theme.get_html_theme_path()
+
+html_theme = 'bootstrap-astropy'
+
+html_theme_options = {
+    'logotext1': 'HyperScreen',  # white,  semi-bold
+    'logotext2': '',  # orange, light
+    'logotext3': ':docs',   # white,  light
+    'astropy_project_menubar': True
+    }
+
 
 # -- Options for HTMLHelp output ---------------------------------------
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'hyperscreendoc'
+
 
 
 # -- Options for LaTeX output ------------------------------------------

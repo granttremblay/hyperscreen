@@ -8,3 +8,8 @@ install:
 # command to run tests
 script:
   - pytest
+
+deploy:
+  provider: pypi
+  user: "granttremblay"
+  password: "hungry-math-tribune-cite"
