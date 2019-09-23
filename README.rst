@@ -3,7 +3,7 @@
 
 
 ===========
-hyperscreen
+HyperScreen
 ===========
 
 .. image:: https://img.shields.io/pypi/v/hyperscreen.svg
@@ -18,7 +18,7 @@ hyperscreen
 
 
 
-Python Boilerplate contains all the boilerplate you need to create a Python package.
+An improved background rejection algorithm for the *Chandra* High Resolution Camera (HRC)
 
 
 * Free software: MIT license
@@ -28,6 +28,7 @@ Python Boilerplate contains all the boilerplate you need to create a Python pack
 Features
 --------
 
+* HyperScreen dynamically creates a hyperbolic acceptance zone on a *tap-by-tap* basis. 
 * TODO
 
 Credits
