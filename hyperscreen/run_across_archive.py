@@ -15,26 +15,27 @@ import warnings
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 
-def clean(evt1_file):
-    obs = hyperscreen.HRCevt1(evt1_file)
-    print("Doing {}, {}, {} events".format(
-        obs.obsid, obs.detector, obs.numevents))
-    tapscreen_results_dict = obs.tapscreen()
-    hyperscreen.image(x[survival_mask], y[survival_mask], title='{} | {} | {}'.format(
-        obs.obsid, obs.target, obs.numevents), show=False, savepath="/Users/grant/Desktop/hyperplots/{}.pdf".format(obs.obsid))
-    #print(tapscreen_results_dict["Percent improvement"])
-    return tapscreen_results_dict
+# def clean(evt1_file):
+#     obs = hyperscreen.HRCevt1(evt1_file)
+#     print("Doing {}, {}, {} events".format(
+#         obs.obsid, obs.detector, obs.numevents))
+#     tapscreen_results_dict = obs.tapscreen()
+#     hyperscreen.image(x[survival_mask], y[survival_mask], title='{} | {} | {}'.format(
+#         obs.obsid, obs.target, obs.numevents), show=False, savepath="/Users/grant/Desktop/hyperplots/{}.pdf".format(obs.obsid))
+#     #print(tapscreen_results_dict["Percent improvement"])
+#     return tapscreen_results_dict
 
 
 def main():
     """Console script for hyperscreen."""
     parser = argparse.ArgumentParser()
-    parser.add_argument('-t', '--test', help='Test Argument')
+
+    parser.add_argument('-a', '--archivepath', help='Absolute PATH to Archive of EVT1 Files',
+                        default='/Users/grant/Science/HRC_Database/EVT1_Files/')
+
     args = parser.parse_args()
 
-    print(args.test)
-
-    archive_path = '/Users/grant/Science/HRC_Database/EVT1_Files/'
+    archive_path = args.archivepath
     if not os.path.isdir(archive_path):
         sys.exit("Supplied archive Path ({}) not found".format(archive_path))
 
