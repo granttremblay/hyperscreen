@@ -124,3 +124,4 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+hyperscreen/__pycache__/hyperscreen.cpython-37.pyc
