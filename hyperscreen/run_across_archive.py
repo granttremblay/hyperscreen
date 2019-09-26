@@ -50,9 +50,10 @@ def main():
     # p.close()
     # p.join()
 
-    for item in evt1_files:
-        print(item)
-
+    for evt1_file in evt1_files[:1]:
+        obs = hyperscreen.HRCevt1(evt1_file)
+        tapscreen_results_dict = obs.hyperscreen()
+        obs.boomerang()
     # for obs in evt1_files[4]:
     #     results = clean(obs)
     #     print(results)

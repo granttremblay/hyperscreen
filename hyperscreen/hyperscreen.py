@@ -6,6 +6,7 @@ for """
 
 import warnings
 import matplotlib as mpl
+import matplotlib.pyplot as plt
 from astropy.io import fits
 from astropy.table import Table
 
@@ -362,67 +363,67 @@ class HRCevt1:
         # print("{0: <25}| ".format(""))
         return hyperzones, hypermasks
 
-    # def boomerang(self, mask=None, show=True, save=False, savedir='./'):
+    def boomerang(self, mask=None, show=True, save=False, savedir='./'):
 
-    #     self.fig, self.ax = plt.subplots(figsize=(12, 8))
+        self.fig, self.ax = plt.subplots(figsize=(12, 8))
 
-    #     if mask is not None:
-    #         frame = self.ax.scatter(self.data['fb_u'][mask], self.data['fp_u'][mask],
-    #                                 c=self.data['sumamps'][mask], cmap='plasma', s=0.5, rasterized=True)
-    #     else:
-    #         frame = self.ax.scatter(self.data['fb_u'], self.data['fp_u'],
-    #                                 c=self.data['sumamps'], cmap='plasma', s=0.5, rasterized=True)
+        if mask is not None:
+            frame = self.ax.scatter(self.data['fb_u'][mask], self.data['fp_u'][mask],
+                                    c=self.data['sumamps'][mask], cmap='plasma', s=0.5, rasterized=True)
+        else:
+            frame = self.ax.scatter(self.data['fb_u'], self.data['fp_u'],
+                                    c=self.data['sumamps'], cmap='plasma', s=0.5, rasterized=True)
 
-    #     self.ax.set_title('{} | {} | ObsID {} | {} ksec | {} counts'.format(
-    #         self.target, self.detector, self.obsid, round(self.exptime/1000, 1), self.numevents))
-    #     self.ax.set_ylabel(r'Fine Position $f_p$ $(C-A)/(A + B + C)$')
-    #     self.ax.set_xlabel(
-    #         r'Normalized Central Tap Amplitude $f_b$ $B / (A+B+C)$')
+        self.ax.set_title('{} | {} | ObsID {} | {} ksec | {} counts'.format(
+            self.target, self.detector, self.obsid, round(self.exptime/1000, 1), self.numevents))
+        self.ax.set_ylabel(r'Fine Position $f_p$ $(C-A)/(A + B + C)$')
+        self.ax.set_xlabel(
+            r'Normalized Central Tap Amplitude $f_b$ $B / (A+B+C)$')
 
-    #     self.cbar = plt.colorbar(frame, pad=-0.005)
-    #     self.cbar.set_label("SUMAMPS")
+        self.cbar = plt.colorbar(frame, pad=-0.005)
+        self.cbar.set_label("SUMAMPS")
 
-    #     if show is True:
-    #         plt.show()
+        if show is True:
+            plt.show()
 
-    #     if save is True:
-    #         savepath = '{}{}_{}_boomerang.pdf'.format(
-    #             savedir, self.obsid, self.detector)
-    #         self.fig.savefig(savepath, dpi=150, bbox_inches='tight')
-    #         print('Saved boomerang figure to: {}'.format(savepath))
+        if save is True:
+            savepath = '{}{}_{}_boomerang.pdf'.format(
+                savedir, self.obsid, self.detector)
+            self.fig.savefig(savepath, dpi=150, bbox_inches='tight')
+            print('Saved boomerang figure to: {}'.format(savepath))
 
-    # def quicklook(self, masked_x=None, masked_y=None, title=None, show=True, return_img_data=False):
+    def quicklook(self, masked_x=None, masked_y=None, title=None, show=True, return_img_data=False):
 
-    #     nbins = (300, 300)
+        nbins = (300, 300)
 
-    #     if masked_x is not None and masked_y is not None:
-    #         x = masked_x[400:]
-    #         y = masked_y[400:]
-    #         img_data, yedges, xedges = np.histogram2d(y, x, nbins)
-    #     else:
-    #         x = self.data['x'][400:]
-    #         y = self.data['y'][400:]
-    #         img_data, yedges, xedges = np.histogram2d(y, x, nbins)
+        if masked_x is not None and masked_y is not None:
+            x = masked_x[400:]
+            y = masked_y[400:]
+            img_data, yedges, xedges = np.histogram2d(y, x, nbins)
+        else:
+            x = self.data['x'][400:]
+            y = self.data['y'][400:]
+            img_data, yedges, xedges = np.histogram2d(y, x, nbins)
 
-    #     extent = [xedges[0], xedges[-1], yedges[0], yedges[-1]]
+        extent = [xedges[0], xedges[-1], yedges[0], yedges[-1]]
 
-    #     if show is True:
-    #         self.fig, self.ax = plt.subplots(figsize=(8, 8))
-    #         self.ax.grid(False)
-    #         plt.imshow(img_data, extent=extent, norm=LogNorm(),
-    #                    interpolation=None, cmap='viridis', origin='lower')
-    #         #plt.imshow(img_data,  interpolation=None, cmap='magma', origin='lower')
-    #         if title is None:
-    #             self.ax.set_title("ObsID {} | {} | {} | {:,} events".format(
-    #                 self.obsid, self.target, self.detector, self.numevents))
-    #         else:
-    #             self.ax.set_title("{}".format(title))
-    #         self.ax.set_xlabel("Sky X")
-    #         self.ax.set_ylabel("Sky Y")
-    #         plt.show(block=True)
+        if show is True:
+            self.fig, self.ax = plt.subplots(figsize=(8, 8))
+            self.ax.grid(False)
+            plt.imshow(img_data, extent=extent, norm=LogNorm(),
+                       interpolation=None, cmap='viridis', origin='lower')
+            #plt.imshow(img_data,  interpolation=None, cmap='magma', origin='lower')
+            if title is None:
+                self.ax.set_title("ObsID {} | {} | {} | {:,} events".format(
+                    self.obsid, self.target, self.detector, self.numevents))
+            else:
+                self.ax.set_title("{}".format(title))
+            self.ax.set_xlabel("Sky X")
+            self.ax.set_ylabel("Sky Y")
+            plt.show(block=True)
 
-    #     if return_img_data is True:
-    #         return img_data, extent
+        if return_img_data is True:
+            return img_data, extent
 
 
 def styleplots():
