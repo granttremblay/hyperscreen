@@ -220,13 +220,14 @@ class HRCevt1:
             if len(v_axis_survivals) == 0:
                 print("HMMM V")
 
-        # print(v_axis_survivals)
+        # Done looping over taps
 
         u_all_survivals = np.concatenate(
             [x for x in u_axis_survivals.values()])
         v_all_survivals = np.concatenate(
             [x for x in v_axis_survivals.values()])
 
+        # If the event passes both U- and V-axis tests, it survives
         all_survivals = np.intersect1d(u_all_survivals, v_all_survivals)
         survival_mask = np.isin(self.data.index.values, all_survivals)
         failure_mask = np.logical_not(survival_mask)
@@ -237,6 +238,7 @@ class HRCevt1:
         percent_tapscreen_rejected = round(
             ((num_failures / self.numevents) * 100), 2)
 
+        # Do a sanity check to look for lost events. Shouldn't be any.
         if num_survivals + num_failures != self.numevents:
             print("WARNING: Total Number of survivals and failures does \
             not equal total events in the EVT1 file. Something is wrong!")
@@ -251,22 +253,23 @@ class HRCevt1:
         percent_improvement_over_legacy_test = round(
             (percent_tapscreen_rejected - percent_legacy_hyperbola_test_rejected), 2)
 
-        tapscreen_results_dict = {"U Axis Survivals by Tap": u_axis_survivals,
-                                  "V Axis Survivals by Tap": v_axis_survivals,
-                                  "U Axis All Survivals": u_all_survivals,
-                                  "V Axis All Survivals": v_all_survivals,
-                                  "All Survivals (event indices)": all_survivals,
-                                  "All Survivals (boolean mask)": survival_mask,
-                                  "All Failures (boolean mask)": failure_mask,
-                                  "Percent rejected by Tapscreen": percent_tapscreen_rejected,
-                                  "Percent rejected by Hyperbola": percent_legacy_hyperbola_test_rejected,
-                                  "Percent improvement": percent_improvement_over_legacy_test
-                                  }
+        hyperscreen_results_dict = {"U Axis Survivals by Tap": u_axis_survivals,
+                                    "V Axis Survivals by Tap": v_axis_survivals,
+                                    "U Axis All Survivals": u_all_survivals,
+                                    "V Axis All Survivals": v_all_survivals,
+                                    "All Survivals (event indices)": all_survivals,
+                                    "All Survivals (boolean mask)": survival_mask,
+                                    "All Failures (boolean mask)": failure_mask,
+                                    "Percent rejected by Tapscreen": percent_tapscreen_rejected,
+                                    "Percent rejected by Hyperbola": percent_legacy_hyperbola_test_rejected,
+                                    "Percent improvement": percent_improvement_over_legacy_test
+                                    }
 
-        return tapscreen_results_dict
+        return hyperscreen_results_dict
 
     def hyperbola(self, fb, a, b, h):
-        '''Create a simple hyperbola'''
+        '''Given the normalized central tap amplitude, a, b, and h, 
+        return an array of length len(fb) that gives a hyperbola.'''
         hyperbola = b * np.sqrt(((fb - h)**2 / a**2) - 1)
 
         return hyperbola
