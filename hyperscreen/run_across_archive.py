@@ -67,7 +67,7 @@ def main():
     for evt1_file in evt1_files:
         obs = hyperscreen.HRCevt1(evt1_file)
         # tapscreen_results_dict = obs.hyperscreen()
-        obs.image()
+        obs.image(show=False, savefile="/Users/grant/Desktop/image_test/{}.pdf".format(obs.obsid))
     # for obs in evt1_files[4]:
     #     results = clean(obs)
     #     print(results)

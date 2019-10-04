@@ -409,7 +409,7 @@ class HRCevt1:
             self.fig.savefig(savepath, dpi=150, bbox_inches='tight')
             print('Saved boomerang figure to: {}'.format(savepath))
 
-    def image(self, masked_x=None, masked_y=None, title=None, show=True, return_img_data=False):
+    def image(self, masked_x=None, masked_y=None, title=None, show=True, savepath=None, return_img_data=False):
 
         nbins = (400, 400)
 
@@ -441,6 +441,10 @@ class HRCevt1:
 
         if return_img_data is True:
             return img_data, extent
+        
+        if savepath is not None:
+            plt.savefig('{}'.format(savepath))
+            print("Saved image to {}".format(filename))
 
 
 
