@@ -5,8 +5,11 @@
 for """
 
 import warnings
+
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+from matplotlib.colors import LogNorm
+
 from astropy.io import fits
 from astropy.table import Table
 
@@ -26,9 +29,11 @@ class HRCevt1:
     Check out that cool new filtering algorithm!
     '''
 
-    def __init__(self, evtfile):
-        self.filename = evtfile
-        self.hdulist = fits.open(evtfile)
+    def __init__(self, evt1file):
+
+        # Do a standard read in of the EVT1 fits table
+        self.filename = evt1file
+        self.hdulist = fits.open(evt1file)
         self.data = Table(self.hdulist[1].data)
         self.header = self.hdulist[1].header
         self.gti = self.hdulist[2].data
@@ -38,6 +43,12 @@ class HRCevt1:
 
         self.gti.starts = self.gti['START']
         self.gti.stops = self.gti['STOP']
+
+        self.gtimask = []
+        # for start, stop in zip(self.gti.starts, self.gti.stops):
+        #     self.gtimask = (self.data["time"] > start) & (self.data["time"] < stop)
+
+        self.gtimask = (self.data["time"] > self.gti.starts[0]) & (self.data["time"] < self.gti.stops[-1])
 
         self.data["fp_u"] = fp_u
         self.data["fb_u"] = fb_u
@@ -90,6 +101,9 @@ class HRCevt1:
         self.exptime = self.header["EXPOSURE"]
 
         self.numevents = len(self.data["time"])
+        self.goodtimeevents = len(self.data["time"][self.gtimask])
+        self.badtimeevents = self.numevents - self.goodtimeevents
+
         self.hyperbola_passes = np.sum(np.logical_or(
             self.data['U hyperbolic test failed'], self.data['V hyperbolic test failed']))
         self.hyperbola_failures = np.sum(np.logical_not(np.logical_or(
@@ -395,17 +409,17 @@ class HRCevt1:
             self.fig.savefig(savepath, dpi=150, bbox_inches='tight')
             print('Saved boomerang figure to: {}'.format(savepath))
 
-    def quicklook(self, masked_x=None, masked_y=None, title=None, show=True, return_img_data=False):
+    def image(self, masked_x=None, masked_y=None, title=None, show=True, return_img_data=False):
 
-        nbins = (300, 300)
+        nbins = (400, 400)
 
         if masked_x is not None and masked_y is not None:
-            x = masked_x[400:]
-            y = masked_y[400:]
+            x = masked_x
+            y = masked_y
             img_data, yedges, xedges = np.histogram2d(y, x, nbins)
         else:
-            x = self.data['x'][400:]
-            y = self.data['y'][400:]
+            x = self.data['x'][self.gtimask]
+            y = self.data['y'][self.gtimask]
             img_data, yedges, xedges = np.histogram2d(y, x, nbins)
 
         extent = [xedges[0], xedges[-1], yedges[0], yedges[-1]]
@@ -418,7 +432,7 @@ class HRCevt1:
             #plt.imshow(img_data,  interpolation=None, cmap='magma', origin='lower')
             if title is None:
                 self.ax.set_title("ObsID {} | {} | {} | {:,} events".format(
-                    self.obsid, self.target, self.detector, self.numevents))
+                    self.obsid, self.target, self.detector, self.goodtimeevents))
             else:
                 self.ax.set_title("{}".format(title))
             self.ax.set_xlabel("Sky X")
@@ -427,6 +441,9 @@ class HRCevt1:
 
         if return_img_data is True:
             return img_data, extent
+
+
+
 
 
 def styleplots():

@@ -126,3 +126,4 @@ dmypy.json
 .pyre/
 hyperscreen/__pycache__/hyperscreen.cpython-37.pyc
 *.pyc
+*.pyc
