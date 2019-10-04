@@ -33,8 +33,10 @@ def main():
     parser.add_argument('-a', '--archivepath', help='Absolute PATH to Archive of EVT1 Files',
                         default='/Users/grant/Science/HRC_Database/EVT1_Files/')
 
-    parser.add_argument('-t', '--testdata', action='store_true', help='Use the supplied test data as the input archive path')
-    parser.add_argument('-w', '--windowstest', action='store_true', help='Point to my Windows database')             
+    parser.add_argument('-t', '--testdata', action='store_true',
+                        help='Use the supplied test data as the input archive path')
+    parser.add_argument('-w', '--windowstest', action='store_true',
+                        help='Point to my Windows database')
 
     args = parser.parse_args()
 
@@ -42,9 +44,9 @@ def main():
         archive_path = '../tests/data/'
     elif args.windowstest is True:
         archive_path = '/mnt/c/Users/grant/HRCOps/Datalake/'
-    else: 
+    else:
         archive_path = args.archivepath
-    
+
     if not os.path.isdir(archive_path):
         sys.exit("Supplied archive Path ({}) not found".format(archive_path))
 
@@ -67,7 +69,8 @@ def main():
     for evt1_file in evt1_files:
         obs = hyperscreen.HRCevt1(evt1_file)
         # tapscreen_results_dict = obs.hyperscreen()
-        obs.image(show=False, savefile="/Users/grant/Desktop/image_test/{}.pdf".format(obs.obsid))
+        obs.image(
+            show=False, savepath="/Users/grant/Desktop/image_test/{}.pdf".format(obs.obsid))
     # for obs in evt1_files[4]:
     #     results = clean(obs)
     #     print(results)

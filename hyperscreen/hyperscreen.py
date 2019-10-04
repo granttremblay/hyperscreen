@@ -23,9 +23,9 @@ warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 class HRCevt1:
     '''
-    A more robust HRC EVT1 file. Includes explicit 
-    columns for every status bit, as well as calculated 
-    columns for the f_p, f_b plane for your boomerangs. 
+    A more robust HRC EVT1 file. Includes explicit
+    columns for every status bit, as well as calculated
+    columns for the f_p, f_b plane for your boomerangs.
     Check out that cool new filtering algorithm!
     '''
 
@@ -48,7 +48,8 @@ class HRCevt1:
         # for start, stop in zip(self.gti.starts, self.gti.stops):
         #     self.gtimask = (self.data["time"] > start) & (self.data["time"] < stop)
 
-        self.gtimask = (self.data["time"] > self.gti.starts[0]) & (self.data["time"] < self.gti.stops[-1])
+        self.gtimask = (self.data["time"] > self.gti.starts[0]) & (
+            self.data["time"] < self.gti.stops[-1])
 
         self.data["fp_u"] = fp_u
         self.data["fb_u"] = fb_u
@@ -282,7 +283,7 @@ class HRCevt1:
         return hyperscreen_results_dict
 
     def hyperbola(self, fb, a, b, h):
-        '''Given the normalized central tap amplitude, a, b, and h, 
+        '''Given the normalized central tap amplitude, a, b, and h,
         return an array of length len(fb) that gives a hyperbola.'''
         hyperbola = b * np.sqrt(((fb - h)**2 / a**2) - 1)
 
@@ -424,30 +425,27 @@ class HRCevt1:
 
         extent = [xedges[0], xedges[-1], yedges[0], yedges[-1]]
 
+        self.fig, self.ax = plt.subplots(figsize=(8, 8))
+        self.ax.grid(False)
+        plt.imshow(img_data, extent=extent, norm=LogNorm(),
+                   interpolation=None, cmap='viridis', origin='lower')
+        # plt.imshow(img_data,  interpolation=None, cmap='magma', origin='lower')
+        if title is None:
+            self.ax.set_title("ObsID {} | {} | {} | {:,} events".format(
+                self.obsid, self.target, self.detector, self.goodtimeevents))
+        else:
+            self.ax.set_title("{}".format(title))
+        self.ax.set_xlabel("Sky X")
+        self.ax.set_ylabel("Sky Y")
         if show is True:
-            self.fig, self.ax = plt.subplots(figsize=(8, 8))
-            self.ax.grid(False)
-            plt.imshow(img_data, extent=extent, norm=LogNorm(),
-                       interpolation=None, cmap='viridis', origin='lower')
-            #plt.imshow(img_data,  interpolation=None, cmap='magma', origin='lower')
-            if title is None:
-                self.ax.set_title("ObsID {} | {} | {} | {:,} events".format(
-                    self.obsid, self.target, self.detector, self.goodtimeevents))
-            else:
-                self.ax.set_title("{}".format(title))
-            self.ax.set_xlabel("Sky X")
-            self.ax.set_ylabel("Sky Y")
             plt.show(block=True)
 
         if return_img_data is True:
             return img_data, extent
-        
+
         if savepath is not None:
             plt.savefig('{}'.format(savepath))
-            print("Saved image to {}".format(filename))
-
-
-
+            print("Saved image to {}".format(savepath))
 
 
 def styleplots():
