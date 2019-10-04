@@ -3,13 +3,14 @@
 
 """Console script for hyperscreen."""
 import multiprocessing
-import hyperscreen
+import hyperscreen as hyperscreen
 import os
 import sys
 import time
 import glob
 import argparse
 
+import matplotlib.pyplot as plt
 
 import warnings
 warnings.filterwarnings("ignore", category=RuntimeWarning)
@@ -66,11 +67,27 @@ def main():
     # p.close()
     # p.join()
 
-    for evt1_file in evt1_files:
+    for evt1_file in evt1_files[:1]:
         obs = hyperscreen.HRCevt1(evt1_file)
-        # tapscreen_results_dict = obs.hyperscreen()
-        obs.image(
-            show=False, savepath="/Users/grant/Desktop/image_test/{}.pdf".format(obs.obsid))
+        tapscreen_results_dict = obs.hyperscreen()
+        # obs.image(show=False, detcoords=True,
+        #           savepath="/Users/grant/Desktop/image_test/{}.pdf".format(obs.obsid), create_subplot=False)
+
+    hyperscreen.styleplots()
+    fig, axes = plt.subplots(2, 2, figsize=(10, 10))
+
+    obs.boomerang(ax=axes[0, 0], create_subplot=True,
+                  show=False, title='Test1', cmap='magma')
+    obs.boomerang(ax=axes[0, 1], create_subplot=True,
+                  show=False, title='Test2', cmap='inferno')
+
+    obs.image(ax=axes[1, 0], detcoords=True, show=False,
+              create_subplot=True, title="Test1")
+    obs.image(ax=axes[1, 1], detcoords=True, show=False,
+              create_subplot=True, title="Test2", cmap='magma')
+
+    plt.show()
+
     # for obs in evt1_files[4]:
     #     results = clean(obs)
     #     print(results)

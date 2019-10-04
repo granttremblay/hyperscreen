@@ -381,37 +381,59 @@ class HRCevt1:
         # print("{0: <25}| ".format(""))
         return hyperzones, hypermasks
 
-    def boomerang(self, mask=None, show=True, save=False, savedir='./'):
+    def boomerang(self, mask=None, show=True, plot_legacy_zone=True, title=None, cmap=None, savepath=None, create_subplot=False, ax=None):
 
-        self.fig, self.ax = plt.subplots(figsize=(12, 8))
+        # You can plot the image on axes of a subplot by passing
+        # that axis to this function. Here are some switches to enable that.
+
+        if create_subplot is False:
+            self.fig, self.ax = plt.subplots(figsize=(12, 8))
+        elif create_subplot is True:
+            if ax is None:
+                self.ax = plt.gca()
+            else:
+                self.ax = ax
+
+        if cmap is None:
+            cmap = 'plasma'
 
         if mask is not None:
             frame = self.ax.scatter(self.data['fb_u'][mask], self.data['fp_u'][mask],
-                                    c=self.data['sumamps'][mask], cmap='plasma', s=0.5, rasterized=True)
+                                    c=self.data['sumamps'][mask], cmap=cmap, s=0.5, rasterized=True)
         else:
             frame = self.ax.scatter(self.data['fb_u'], self.data['fp_u'],
-                                    c=self.data['sumamps'], cmap='plasma', s=0.5, rasterized=True)
+                                    c=self.data['sumamps'], cmap=cmap, s=0.5, rasterized=True)
 
-        self.ax.set_title('{} | {} | ObsID {} | {} ksec | {} counts'.format(
-            self.target, self.detector, self.obsid, round(self.exptime/1000, 1), self.numevents))
+        self.ax.grid(False)
+
+        if title is None:
+            self.ax.set_title('{} | {} | ObsID {} | {} ksec | {} counts'.format(
+                self.target, self.detector, self.obsid, round(self.exptime/1000, 1), self.numevents))
+        else:
+            self.ax.set_title(title)
+
         self.ax.set_ylabel(r'Fine Position $f_p$ $(C-A)/(A + B + C)$')
         self.ax.set_xlabel(
             r'Normalized Central Tap Amplitude $f_b$ $B / (A+B+C)$')
 
-        self.cbar = plt.colorbar(frame, pad=-0.005)
-        self.cbar.set_label("SUMAMPS")
+        if create_subplot is False:
+            self.cbar = plt.colorbar(frame, pad=-0.005)
+            self.cbar.set_label("SUMAMPS")
 
         if show is True:
             plt.show()
 
-        if save is True:
-            savepath = '{}{}_{}_boomerang.pdf'.format(
-                savedir, self.obsid, self.detector)
-            self.fig.savefig(savepath, dpi=150, bbox_inches='tight')
+        if savepath is not None:
+            plt.savefig(savepath, dpi=150, bbox_inches='tight')
             print('Saved boomerang figure to: {}'.format(savepath))
 
-    def image(self, masked_x=None, masked_y=None, title=None, show=True, savepath=None, return_img_data=False):
+    def image(self, masked_x=None, masked_y=None, detcoords=False, title=None, cmap=None, show=True, savepath=None, create_subplot=False, ax=None):
+        '''
+        Create a quicklook image, in detector or sky coordinates, of the 
+        observation. The image will be binned to 400x400. 
+        '''
 
+        # Create the 2D histogram
         nbins = (400, 400)
 
         if masked_x is not None and masked_y is not None:
@@ -419,29 +441,51 @@ class HRCevt1:
             y = masked_y
             img_data, yedges, xedges = np.histogram2d(y, x, nbins)
         else:
-            x = self.data['x'][self.gtimask]
-            y = self.data['y'][self.gtimask]
+            if detcoords is False:
+                x = self.data['x'][self.gtimask]
+                y = self.data['y'][self.gtimask]
+            elif detcoords is True:
+                x = self.data['detx'][self.gtimask]
+                y = self.data['dety'][self.gtimask]
             img_data, yedges, xedges = np.histogram2d(y, x, nbins)
 
         extent = [xedges[0], xedges[-1], yedges[0], yedges[-1]]
 
-        self.fig, self.ax = plt.subplots(figsize=(8, 8))
+        # Create the Figure
+        styleplots()
+
+        # You can plot the image on axes of a subplot by passing
+        # that axis to this function. Here are some switches to enable that.
+        if create_subplot is False:
+            self.fig, self.ax = plt.subplots()
+        elif create_subplot is True:
+            if ax is None:
+                self.ax = plt.gca()
+            else:
+                self.ax = ax
+
         self.ax.grid(False)
-        plt.imshow(img_data, extent=extent, norm=LogNorm(),
-                   interpolation=None, cmap='viridis', origin='lower')
-        # plt.imshow(img_data,  interpolation=None, cmap='magma', origin='lower')
+
+        if cmap is None:
+            cmap = 'viridis'
+
+        self.ax.imshow(img_data, extent=extent, norm=LogNorm(),
+                       interpolation=None, cmap=cmap, origin='lower')
+
         if title is None:
             self.ax.set_title("ObsID {} | {} | {} | {:,} events".format(
                 self.obsid, self.target, self.detector, self.goodtimeevents))
         else:
             self.ax.set_title("{}".format(title))
-        self.ax.set_xlabel("Sky X")
-        self.ax.set_ylabel("Sky Y")
+        if detcoords is False:
+            self.ax.set_xlabel("Sky X")
+            self.ax.set_ylabel("Sky Y")
+        elif detcoords is True:
+            self.ax.set_xlabel("Detector X")
+            self.ax.set_ylabel("Detector Y")
+
         if show is True:
             plt.show(block=True)
-
-        if return_img_data is True:
-            return img_data, extent
 
         if savepath is not None:
             plt.savefig('{}'.format(savepath))
@@ -455,39 +499,10 @@ def styleplots():
     # Make things pretty
     plt.style.use('ggplot')
 
-    labelsizes = 15
+    labelsizes = 10
 
     plt.rcParams['font.size'] = labelsizes
     plt.rcParams['axes.titlesize'] = 12
     plt.rcParams['axes.labelsize'] = labelsizes
     plt.rcParams['xtick.labelsize'] = labelsizes
     plt.rcParams['ytick.labelsize'] = labelsizes
-
-
-def image(x, y, nbins=(300, 300), truncate_start=False, cmap=mpl.cm.magma, title='Set Title', show=True, savepath=None):
-
-    if truncate_start is True:
-        x = x[400:]
-        y = y[400:]
-
-    img_data, yedges, xedges = np.histogram2d(y, x, nbins)
-
-    extent = [xedges[0], xedges[-1], yedges[0], yedges[-1]]
-
-    fig, ax = plt.subplots(figsize=(8, 8))
-    # cmap.set_bad('white')
-    ax.imshow(img_data, norm=LogNorm(), interpolation=None,
-              cmap=cmap, origin='lower')
-    ax.set_title(title)
-    ax.grid(False)
-    ax.set_ylabel('y')
-    ax.set_xlabel('x')
-
-    if show is True:
-        plt.show()
-
-    if savepath is not None:
-        plt.savefig(savepath, dpi=300)
-        print("Saved plot to {}".format(savepath))
-
-    plt.close()
