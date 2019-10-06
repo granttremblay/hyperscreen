@@ -3,27 +3,22 @@
 
 """Tests for `hyperscreen` package."""
 
-import pytest
+
+
+import sys
 import os
+# Set the path explicitly #
+sys.path.insert(0, os.path.abspath(__file__+"/../.."))
 from hyperscreen import hyperscreen
 
-
-HRC_I_TESTDATA = os.path.join(os.path.dirname(
-    __file__), 'data/hrcI_evt1_testfile.fits.gz')
-HRC_S_TESTDATA = os.path.join(os.path.dirname(
-    __file__), 'data/hrcS_evt1_testfile.fits.gz')
-
-print(HRC_I_TESTDATA)
+import pytest
 
 
-# class MyTest(unittest.TestCase)
+@pytest.fixture()
+def loadHRCI():
+    hrcI = hyperscreen.HRCevt1('data/hrcI_evt1_testfile.fits.gz')
+    return hrcI
 
-#    def setUp(self):
-#         self.testfile = open(TESTDATA_FILENAME)
-#         self.testdata = self.testfile.read()
+def test_structure(loadHRCI):
+    assert hrcI.numevents > 0
 
-#     def tearDown(self):
-#         self.testfile.close()
-
-#     def test_something(self):
-#         ....
