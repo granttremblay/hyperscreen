@@ -8,7 +8,7 @@
 import sys
 import os
 # Set the path explicitly #
-sys.path.insert(0, os.path.abspath(__file__+"/../.."))
+sys.path.insert(0, os.path.abspath(__file__+"/../"))
 from hyperscreen import hyperscreen
 
 import pytest
