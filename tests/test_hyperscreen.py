@@ -18,7 +18,6 @@ import pytest
 
 from hyperscreen import hyperscreen
 
-
 # @pytest.fixture(scope="module")
 # def fits_object():
 #     print("Reading raw HRC-I EVT1 file with astropy.io.fits")
@@ -65,4 +64,9 @@ def test_HRCevt1(hrcI_evt1, hrcS_evt1):
     assert match_I
     assert match_S
 
-# def test_legacy_hyperbola_status_bits(hrcI_evt1, hrcS_evt1)
+def test_hyperscreen(hrcI_evt1, hrcS_evt1):
+    hyperscreen_hrcI = hrcI_evt1.hyperscreen()
+    print(hyperscreen_hrcI)
+    assert isinstance(hyperscreen_hrcI, dict)
+    # This will give a warning. You can have pytest ignore with pytest --disable-warnings
+
