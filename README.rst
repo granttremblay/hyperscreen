@@ -22,6 +22,8 @@ HyperScreen
 .. image:: https://coveralls.io/repos/github/granttremblay/hyperscreen/badge.svg?branch=master
         :target: https://coveralls.io/github/granttremblay/hyperscreen?branch=master
 
+.. image:: http://img.shields.io/badge/powered%20by-AstroPy-orange.svg?style=flat
+        :target: http://www.astropy.org/
 
 
 An improved background rejection algorithm for the *Chandra* High Resolution Camera (HRC)
