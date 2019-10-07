@@ -13,7 +13,8 @@ install:
   - pip install coveralls
 # command to run tests
 script:
-  - pytest --cov=hyperscreen tests/
+  - pytest --cov
+
 after_success:
   - coveralls
 
