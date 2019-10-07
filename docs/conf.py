@@ -108,10 +108,6 @@ html_static_path = ['_static']
 # html_sidebars = {}
 
 
-import astropy_sphinx_theme
-html_theme_path = astropy_sphinx_theme.get_html_theme_path()
-
-html_theme = 'bootstrap-astropy'
 
 html_theme_options = {
     'logotext1': 'HyperScreen',  # white,  semi-bold
@@ -120,6 +116,14 @@ html_theme_options = {
     'astropy_project_menubar': True
     }
 
+
+
+# import astropy_sphinx_theme
+# html_theme_path = astropy_sphinx_theme.get_html_theme_path()
+
+
+
+html_theme = 'bootstrap-astropy'
 
 # -- Options for HTMLHelp output ---------------------------------------
 
