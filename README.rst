@@ -17,14 +17,20 @@ HyperScreen
 
 .. image:: https://img.shields.io/travis/granttremblay/hyperscreen.svg
         :target: https://travis-ci.com/granttremblay/hyperscreen
+        :alt: Build Status
 
 
 .. image:: https://coveralls.io/repos/github/granttremblay/hyperscreen/badge.svg?branch=master
         :target: https://coveralls.io/github/granttremblay/hyperscreen?branch=master
+        :alt: Test Coverage
 
 .. image:: http://img.shields.io/badge/powered%20by-AstroPy-orange.svg?style=flat
         :target: http://www.astropy.org/
+        :alt: Powered by Astropy
 
+.. image:: https://img.shields.io/pypi/l/sphinx_rtd_theme.svg
+        :target: https://pypi.python.org/pypi/sphinx_rtd_theme/
+        :alt: License
 
 An improved background rejection algorithm for the *Chandra* High Resolution Camera (HRC)
 
