@@ -1,5 +1,5 @@
-Welcome to hyperscreen's documentation!
-======================================
+HyperScreen | Improved Background Rejection for the HRC
+=======================================================
 
 .. toctree::
    :maxdepth: 2

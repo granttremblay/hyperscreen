@@ -1,5 +1,5 @@
 
-.. image:: misc/hyperscreen_logo.png
+.. image:: /docs/_static/hyperscreen_logo.png
 
 
 ===========
