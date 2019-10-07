@@ -4,6 +4,9 @@
 """hyperscreen is an improved background rejection algorithm
 for """
 
+from __future__ import division
+from __future__ import print_function
+
 import warnings
 
 import matplotlib as mpl

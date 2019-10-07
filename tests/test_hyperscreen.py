@@ -6,6 +6,9 @@ py.test unit tests for hyperscreen and related packages.
 Currently, these are pretty dumb. 
 """
 
+from __future__ import division
+from __future__ import print_function
+
 import sys
 import os
 
