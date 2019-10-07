@@ -56,7 +56,17 @@ def main():
         sys.exit("Supplied archive Path ({}) not found".format(archive_path))
 
     # Check to make sure the HRC database path is right
-    evt1_files = glob.glob(archive_path + '**/*evt1*', recursive=True)
+    if (sys.version_info > (3, 0)):
+        # Python 3 code
+        evt1_files = glob.glob(archive_path + '**/*evt1*', recursive=True)
+    else:
+        # Python 2 code
+        # Python <3.5 glob can't walk directories recursively
+        import fnmatch
+        evt1_files = [os.path.join(dirpath, f) for dirpath, dirnames, files in os.walk(archive_path) for f in fnmatch.filter(files, '*evt1*')]
+
+
+    
     if len(evt1_files) == 0:
         sys.exit(
             "No EVT1 files round in supplied archive path ({})".format(archive_path))
