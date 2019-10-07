@@ -43,7 +43,7 @@ setup(
     keywords='hyperscreen',
     name='hyperscreen',
     packages=find_packages(include=['hyperscreen', 'hyperscreen.*']),
-    scripts=['scripts/run_across_archive'],
+    # scripts=['scripts/run_across_archive'],
     setup_requires=setup_requirements,
     test_suite='tests',
     tests_require=test_requirements,
