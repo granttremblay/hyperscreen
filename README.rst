@@ -11,8 +11,8 @@ HyperScreen
 
 
 .. image:: https://readthedocs.org/projects/hyperscreen/badge/?version=latest
-:target: https://hyperscreen.readthedocs.io/en/latest/?badge=latest
-:alt: Documentation Status
+        :target: https://hyperscreen.readthedocs.io/en/latest/?badge=latest
+        :alt: Documentation Status
 
 
 .. image:: https://img.shields.io/travis/granttremblay/hyperscreen.svg
