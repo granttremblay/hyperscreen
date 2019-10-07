@@ -4,14 +4,16 @@ python:
   - "3.7"
 # command to install dependencies
 install:
+  # Install your own package using pip install & my setup.py
   - pip install .
+  # Install modules in requirements.txt. Make sure you check versions. 
   - pip install -r requirements.txt
   - pip install pytest
   - pip install pytest-cov
   - pip install coveralls
 # command to run tests
 script:
-  - pytest -cov=hyperscreen/
+  - pytest --cov=hyperscreen/
 after_success:
   - coveralls
 
