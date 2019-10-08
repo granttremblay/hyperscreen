@@ -31,7 +31,6 @@ warnings.filterwarnings("ignore", category=RuntimeWarning)
 #     return tapscreen_results_dict
 
 
-
 def main():
     """Console script for hyperscreen."""
     parser = argparse.ArgumentParser()
@@ -39,7 +38,8 @@ def main():
     parser.add_argument('-a', '--archivepath', help='Absolute PATH to Archive of EVT1 Files',
                         default='/Users/grant/Science/HRC_Database/EVT1_Files/')
 
-    parser.add_argument('-s', '--savepath', help='Absolute PATH to location in which to save all outputs from this script, including .pdf files of plots. If not specified, this location will default to your Desktop.', default=os.path.join(os.environ['HOME'], 'Desktop/'))
+    parser.add_argument('-s', '--savepath', help='Absolute PATH to location in which to save all outputs from this script, including .pdf files of plots. If not specified, this location will default to your Desktop.',
+                        default=os.path.join(os.environ['HOME'], 'Desktop/'))
 
     parser.add_argument('-t', '--testdata', action='store_true',
                         help='Use the supplied test data as the input archive path')
@@ -71,20 +71,17 @@ def main():
         # Python 2 code
         # Python <3.5 glob can't walk directories recursively
         import fnmatch
-        evt1_files = [os.path.join(dirpath, f) for dirpath, dirnames, files in os.walk(archive_path) for f in fnmatch.filter(files, '*evt1*')]
+        evt1_files = [os.path.join(dirpath, f) for dirpath, dirnames, files in os.walk(
+            archive_path) for f in fnmatch.filter(files, '*evt1*')]
 
-    
     if len(evt1_files) == 0:
         sys.exit(
             'No EVT1 files round in supplied archive path ({})'.format(archive_path))
-
-
 
     # p = multiprocessing.Pool()
     # p.map(clean, evt1_files[:4])
     # p.close()
     # p.join()
-
 
     # for evt1_file in evt1_files:
     #     obs = hyperscreen.HRCevt1(evt1_file)
@@ -96,8 +93,8 @@ def main():
 
     hyperscreen.styleplots()
 
-
-    reportCard_savepath = os.path.join(savepath, '{}_{}_{}_hyperReport.pdf'.format(obs.obsid, obs.target, obs.detector))
+    reportCard_savepath = os.path.join(
+        savepath, '{}_{}_{}_hyperReport.pdf'.format(obs.obsid, obs.target, obs.detector))
     fig, axes = plt.subplots(2, 2, figsize=(10, 10))
 
     obs.boomerang(ax=axes[0, 0], create_subplot=True,
