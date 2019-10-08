@@ -32,7 +32,7 @@ class HRCevt1:
     Check out that cool new filtering algorithm!
     '''
 
-    def __init__(self, evt1file):
+    def __init__(self, evt1file, as_astropy_table=False):
 
         # Do a standard read in of the EVT1 fits table
         self.filename = evt1file
@@ -117,9 +117,10 @@ class HRCevt1:
             print("Warning: Number of Hyperbola Test Failures and Passes ({}) does not equal total number of events ({}).".format(
                 self.hyperbola_passes + self.hyperbola_failures, self.numevents))
 
-        # Multidimensional columns don't grok with Pandas
-        self.data.remove_column('status')
-        self.data = self.data.to_pandas()
+        if as_astropy_table is False:
+            # Multidimensional columns don't grok with Pandas
+            self.data.remove_column('status')
+            self.data = self.data.to_pandas()
 
     def __str__(self):
         return "HRC EVT1 object with {} events. Data is packaged as a Pandas Dataframe".format(self.numevents)
@@ -181,7 +182,9 @@ class HRCevt1:
 
         data = self.data
 
-        taprange = range(data['crsu'].min(), data['crsu'].max() + 1)
+        #taprange = range(data['crsu'].min(), data['crsu'].max() + 1)
+        taprange_u = range(data['crsu'].min(), data['crsu'].max() + 1)
+        taprange_v = range(data['crsv'].min(), data['crsv'].max() + 1)
 
         bins = [200, 200]  # number of bins
 
@@ -189,12 +192,9 @@ class HRCevt1:
         u_axis_survivals = {}
         v_axis_survivals = {}
 
-        for tap in taprange:
-
+        for tap in taprange_u:
+            # Do the U axis
             tapmask_u = data[data['crsu'] == tap].index.values
-            tapmask_v = data[data['crsv'] == tap].index.values
-
-            # We do the U and V axes independently. Do U first:
             keep_u = np.isfinite(data['fb_u'][tapmask_u])
 
             hist_u, xbounds_u, ybounds_u = np.histogram2d(
@@ -215,7 +215,9 @@ class HRCevt1:
             u_axis_survivals["U Axis Tap {:02d}".format(
                 tap)] = pass_fb_u.index.values
 
+        for tap in taprange_v:
             # Now do the V axis:
+            tapmask_v = data[data['crsv'] == tap].index.values
             keep_v = np.isfinite(data['fb_v'][tapmask_v])
 
             hist_v, xbounds_v, ybounds_v = np.histogram2d(
@@ -235,8 +237,6 @@ class HRCevt1:
 
             v_axis_survivals["V Axis Tap {:02d}".format(
                 tap)] = pass_fb_v.index.values
-            if len(v_axis_survivals) == 0:
-                print("HMMM V")
 
         # Done looping over taps
 
@@ -407,11 +407,28 @@ class HRCevt1:
             cmap = 'plasma'
 
         if mask is not None:
+            self.ax.scatter(self.data['fb_u'], self.data['fp_u'],
+                            c=self.data['sumamps'], cmap='bone', s=0.3, alpha=0.8, rasterized=True)
+
             frame = self.ax.scatter(self.data['fb_u'][mask], self.data['fp_u'][mask],
                                     c=self.data['sumamps'][mask], cmap=cmap, s=0.5, rasterized=True)
+
         else:
             frame = self.ax.scatter(self.data['fb_u'], self.data['fp_u'],
                                     c=self.data['sumamps'], cmap=cmap, s=0.5, rasterized=True)
+
+        if plot_legacy_zone is True:
+            hyperzones, hypermasks = self.legacy_hyperbola_test(
+                tolerance=0.035)
+            self.ax.plot(self.data["fb_u"], hyperzones["zone_u_lowerbound"],
+                         'o', markersize=0.3, color='black', alpha=0.8, rasterized=True)
+            self.ax.plot(self.data["fb_u"], -1 * hyperzones["zone_u_lowerbound"],
+                         'o', markersize=0.3, color='black', alpha=0.8, rasterized=True)
+
+            self.ax.plot(self.data["fb_u"], hyperzones["zone_u_upperbound"],
+                         'o', markersize=0.3, color='black', alpha=0.8, rasterized=True)
+            self.ax.plot(self.data["fb_u"], -1 * hyperzones["zone_u_upperbound"],
+                         'o', markersize=0.3, color='black', alpha=0.8, rasterized=True)
 
         self.ax.grid(False)
 
@@ -420,6 +437,9 @@ class HRCevt1:
                 self.target, self.detector, self.obsid, round(self.exptime/1000, 1), self.numevents))
         else:
             self.ax.set_title(title)
+
+        self.ax.set_ylim(-1.1, 1.1)
+        self.ax.set_xlim(-0.1, 1.1)
 
         self.ax.set_ylabel(r'Fine Position $f_p$ $(C-A)/(A + B + C)$')
         self.ax.set_xlabel(

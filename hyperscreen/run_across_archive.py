@@ -14,6 +14,8 @@ import time
 import glob
 import argparse
 
+from astropy.io import fits
+
 import matplotlib.pyplot as plt
 
 import warnings
@@ -63,9 +65,9 @@ def multiprocess_clean(evt1_file):
         return None
 
 
-def main():
-    """Console script for hyperscreen."""
-    parser = argparse.ArgumentParser()
+def getArgs(argv=None):
+    parser = argparse.ArgumentParser(
+        description='Test HyperScreen across an archive of HRC Observations')
 
     parser.add_argument('-a', '--archivepath', help='Absolute PATH to Archive of EVT1 Files',
                         default='/Users/grant/Science/HRC_Database/EVT1_Files/')
@@ -79,60 +81,112 @@ def main():
     parser.add_argument('-w', '--windowstest', action='store_true',
                         help='Point to my Windows database')
 
-    args = parser.parse_args()
+    return parser.parse_args(argv)
+
+
+def setPaths(args, verbose=False):
+    '''
+    Set paths for this hyperscreen test 
+    '''
 
     savepath = args.savepath
     if not os.path.exists(savepath):
         print("Creating Directory {} in which HyperScreen results will be saved.".format(
             savepath))
         os.makedirs(savepath)
-
-    print("Savepath is {}".format(savepath))
+    if verbose is True:
+        print("Plots will be saved in {}".format(savepath))
 
     if args.testdata is True:
-        archive_path = '../tests/data/'
+        archivepath = '../tests/data/'
     elif args.windowstest is True:
-        archive_path = '/mnt/c/Users/grant/HRCOps/Datalake/'
+        archivepath = '/mnt/c/Users/grant/HRCOps/Datalake/'
     else:
-        archive_path = args.archivepath
+        archivepath = args.archivepath
 
-    if not os.path.isdir(archive_path):
-        sys.exit('Supplied archive Path ({}) not found'.format(archive_path))
+    if not os.path.isdir(archivepath):
+        sys.exit('Supplied archive Path ({}) not found'.format(archivepath))
+
+    return savepath, archivepath
+
+
+def inventoryArchive(archivepath, limit=None, verbose=False):
+    ''' Parse the archive'''
 
     # Check to make sure the HRC database path is right
     if (sys.version_info > (3, 0)):
         # Python 3 code
-        evt1_files = glob.glob(archive_path + '**/*evt1*', recursive=True)
+        evt1_files = glob.glob(archivepath + '**/*evt1*', recursive=True)
     else:
         # Python 2 code
         # Python <3.5 glob can't walk directories recursively
         import fnmatch
         evt1_files = [os.path.join(dirpath, f) for dirpath, dirnames, files in os.walk(
-            archive_path) for f in fnmatch.filter(files, '*evt1*')]
+            archivepath) for f in fnmatch.filter(files, '*evt1*')]
 
     if len(evt1_files) == 0:
         sys.exit(
-            'No EVT1 files round in supplied archive path ({})'.format(archive_path))
+            'ERROR: No EVT1 files round in supplied archive path ({})'.format(archivepath))
+
+    # Let's split out by detector to keep things clean.
+    hrcI_files = []
+    hrcS_files = []
+
+    if limit is None:
+        master_list = evt1_files
+    else:
+        if not isinstance(limit, int):
+            sys.exit('ERROR: limit passed to inventoryArchive must be an integer.')
+        if verbose is True:
+            print('Limiting archive crawl to {} observations'.format(limit))
+        master_list = evt1_files[:limit]
+
+    for evt1_file in master_list:
+        # Grab header for the second extension:
+        hdr = fits.getheader(evt1_file, 1)
+        if hdr['DETNAM'] == 'HRC-I':
+            hrcI_files.append(evt1_file)
+        elif hdr['DETNAM'] == 'HRC-S':
+            hrcS_files.append(evt1_file)
+
+        if verbose is True:
+            print("Sorting {} | ObsID {}, {}, {} ksec".format(
+                evt1_file.split('/')[-1], hdr['OBS_ID'], hdr['DETNAM'], round(hdr['EXPOSURE']/1000, 2)))
+
+    return evt1_files, hrcI_files, hrcS_files
+
+
+def main():
+    """Console script for hyperscreen."""
+
+    args = getArgs()
+    savepath, archivepath = setPaths(args)
+    evt1_files, hrcI_files, hrcS_files = inventoryArchive(
+        archivepath, limit=1, verbose=False)
+
+    for observation in hrcI_files:
+        obs = hyperscreen.HRCevt1(observation)
+        obs.boomerang()
+        obs.boomerang(mask=obs.data['Hyperbola test passed'])
 
     # hyperscreen.styleplots()
 
     # for evt1_file in evt1_files:
     #     reportCard(evt1_file, savepath=savepath)
 
-    p = multiprocessing.Pool()
-    hyperscreen_dicts = p.map(
-        multiprocess_clean, evt1_files[:100])
-    p.close()
-    p.join()
+    # p = multiprocessing.Pool()
+    # hyperscreen_dicts = p.map(
+    #     multiprocess_clean, hrcI_files)
+    # p.close()
+    # p.join()
 
-    print(hyperscreen_dicts)
+    # print(hyperscreen_dicts)
+
 
     # for evt1_file in evt1_files:
     #     obs = hyperscreen.HRCevt1(evt1_file)
     #     tapscreen_results_dict = obs.hyperscreen()
     #     # obs.image(show=False, detcoords=True,
     #     #           savepath="/Users/grant/Desktop/image_test/{}.pdf".format(obs.obsid), create_subplot=False)
-
-
 if __name__ == "__main__":
     sys.exit(main())  # pragma: no cover
