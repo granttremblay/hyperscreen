@@ -39,7 +39,7 @@ def main():
                         default='/Users/grant/Science/HRC_Database/EVT1_Files/')
 
     parser.add_argument('-s', '--savepath', help='Absolute PATH to location in which to save all outputs from this script, including .pdf files of plots. If not specified, this location will default to your Desktop.',
-                        default=os.path.join(os.environ['HOME'], 'Desktop/'))
+                        default=os.path.join(os.environ['HOME'], 'Desktop/HyperScreen_Results/'))
 
     parser.add_argument('-t', '--testdata', action='store_true',
                         help='Use the supplied test data as the input archive path')
@@ -50,6 +50,10 @@ def main():
     args = parser.parse_args()
 
     savepath = args.savepath
+    if not os.path.exists(savepath):
+        print("Creating Directory {} in which HyperScreen results will be saved.".format(
+            savepath))
+        os.path.makedirs(savepath)
 
     print("Savepath is {}".format(savepath))
 
