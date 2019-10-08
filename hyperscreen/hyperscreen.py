@@ -181,7 +181,7 @@ class HRCevt1:
 
         data = self.data
 
-        taprange = range(2, 58)
+        taprange = range(data['crsu'].min(), data['crsu'].max() + 1)
 
         bins = [200, 200]  # number of bins
 
@@ -271,7 +271,13 @@ class HRCevt1:
         percent_improvement_over_legacy_test = round(
             (percent_tapscreen_rejected - percent_legacy_hyperbola_test_rejected), 2)
 
-        hyperscreen_results_dict = {"U Axis Survivals by Tap": u_axis_survivals,
+        hyperscreen_results_dict = {"ObsID": self.obsid,
+                                    "Target": self.target,
+                                    "Exposure Time": self.exptime,
+                                    "Detector": self.detector,
+                                    "Number of Events": self.numevents,
+                                    "Number of Good Time Events": self.goodtimeevents,
+                                    "U Axis Survivals by Tap": u_axis_survivals,
                                     "V Axis Survivals by Tap": v_axis_survivals,
                                     "U Axis All Survivals": u_all_survivals,
                                     "V Axis All Survivals": v_all_survivals,

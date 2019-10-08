@@ -20,15 +20,47 @@ import warnings
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 
-# def clean(evt1_file):
-#     obs = hyperscreen.HRCevt1(evt1_file)
-#     print("Doing {}, {}, {} events".format(
-#         obs.obsid, obs.detector, obs.numevents))
-#     tapscreen_results_dict = obs.tapscreen()
-#     hyperscreen.image(x[survival_mask], y[survival_mask], title='{} | {} | {}'.format(
-#         obs.obsid, obs.target, obs.numevents), show=False, savepath="/Users/grant/Desktop/hyperplots/{}.pdf".format(obs.obsid))
-#     #print(tapscreen_results_dict["Percent improvement"])
-#     return tapscreen_results_dict
+def reportCard(hrcEVT1_fits_file, savepath):
+
+    obs = hyperscreen.HRCevt1(hrcEVT1_fits_file)
+
+    print("Doing {}, {}".format(obs.obsid, obs.detector))
+
+    reportCard_savepath = os.path.join(
+        savepath, '{}_{}_{}_hyperReport.pdf'.format(obs.obsid, obs.target, obs.detector))
+    fig, axes = plt.subplots(2, 2, figsize=(10, 10))
+
+    obs.boomerang(ax=axes[0, 0], create_subplot=True,
+                  show=False, title='Test1', cmap='magma')
+    obs.boomerang(ax=axes[0, 1], create_subplot=True,
+                  show=False, title='Test2', cmap='inferno')
+
+    obs.image(ax=axes[1, 0], detcoords=True, show=False,
+              create_subplot=True, title="Test1")
+    obs.image(ax=axes[1, 1], detcoords=True, show=False,
+              create_subplot=True, title="Test2")
+
+    fig.savefig(reportCard_savepath)
+
+    test = obs.hyperscreen()
+    print("Created {}".format(reportCard_savepath))
+
+    # for obs in evt1_files[4]:
+    #     results = clean(obs)
+    #     print(results)
+
+
+def multiprocess_clean(evt1_file):
+    try:
+        obs = hyperscreen.HRCevt1(evt1_file)
+        hyperscreen_dict = obs.hyperscreen()
+        print("Finished ObsID {}, {}, {}, {} ksec".format(
+            obs.obsid, obs.target, obs.detector, obs.exptime))
+        return hyperscreen_dict
+    except:
+        print("PROBLEM with {}, skipping for now.".format(
+            evt1_file.split('/')[-1]))
+        return None
 
 
 def main():
@@ -53,7 +85,7 @@ def main():
     if not os.path.exists(savepath):
         print("Creating Directory {} in which HyperScreen results will be saved.".format(
             savepath))
-        os.path.makedirs(savepath)
+        os.makedirs(savepath)
 
     print("Savepath is {}".format(savepath))
 
@@ -82,42 +114,24 @@ def main():
         sys.exit(
             'No EVT1 files round in supplied archive path ({})'.format(archive_path))
 
-    # p = multiprocessing.Pool()
-    # p.map(clean, evt1_files[:4])
-    # p.close()
-    # p.join()
+    # hyperscreen.styleplots()
+
+    # for evt1_file in evt1_files:
+    #     reportCard(evt1_file, savepath=savepath)
+
+    p = multiprocessing.Pool()
+    hyperscreen_dicts = p.map(
+        multiprocess_clean, evt1_files[:100])
+    p.close()
+    p.join()
+
+    print(hyperscreen_dicts)
 
     # for evt1_file in evt1_files:
     #     obs = hyperscreen.HRCevt1(evt1_file)
     #     tapscreen_results_dict = obs.hyperscreen()
     #     # obs.image(show=False, detcoords=True,
     #     #           savepath="/Users/grant/Desktop/image_test/{}.pdf".format(obs.obsid), create_subplot=False)
-
-    obs = hyperscreen.HRCevt1(evt1_files[1])
-
-    hyperscreen.styleplots()
-
-    reportCard_savepath = os.path.join(
-        savepath, '{}_{}_{}_hyperReport.pdf'.format(obs.obsid, obs.target, obs.detector))
-    fig, axes = plt.subplots(2, 2, figsize=(10, 10))
-
-    obs.boomerang(ax=axes[0, 0], create_subplot=True,
-                  show=False, title='Test1', cmap='magma')
-    obs.boomerang(ax=axes[0, 1], create_subplot=True,
-                  show=False, title='Test2', cmap='inferno')
-
-    obs.image(ax=axes[1, 0], detcoords=True, show=False,
-              create_subplot=True, title="Test1")
-    obs.image(ax=axes[1, 1], detcoords=True, show=False,
-              create_subplot=True, title="Test2", cmap='magma')
-
-    plt.show()
-    fig.savefig(reportCard_savepath)
-    print("Created {}".format(reportCard_savepath))
-
-    # for obs in evt1_files[4]:
-    #     results = clean(obs)
-    #     print(results)
 
 
 if __name__ == "__main__":
