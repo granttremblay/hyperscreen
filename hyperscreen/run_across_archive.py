@@ -22,30 +22,38 @@ import warnings
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 
-def reportCard(hrcEVT1_fits_file, savepath):
+def reportCard(evt1_object, savepath, show=True, save=True, rasterized=True, dpi=150, verbose=False):
 
-    obs = hyperscreen.HRCevt1(hrcEVT1_fits_file)
+    obs = evt1_object
 
-    print("Doing {}, {}".format(obs.obsid, obs.detector))
+    if verbose is True:
+        print("Doing {}, {}".format(obs.obsid, obs.detector))
 
     reportCard_savepath = os.path.join(
         savepath, '{}_{}_{}_hyperReport.pdf'.format(obs.obsid, obs.target, obs.detector))
-    fig, axes = plt.subplots(2, 2, figsize=(10, 10))
+    fig, axes = plt.subplots(2, 2, figsize=(10, 10), sharey='row')
 
-    obs.boomerang(ax=axes[0, 0], create_subplot=True,
-                  show=False, title='Test1', cmap='magma')
+    obs.boomerang(mask=obs.data['Hyperbola test passed'], ax=axes[0, 0], create_subplot=True,
+                  show=False, title='Legacy Hyperbola Test', cmap='magma', rasterized=rasterized)
     obs.boomerang(ax=axes[0, 1], create_subplot=True,
-                  show=False, title='Test2', cmap='inferno')
+                  show=False, title='Test2', cmap='inferno', rasterized=rasterized)
 
     obs.image(ax=axes[1, 0], detcoords=True, show=False,
-              create_subplot=True, title="Test1")
+              create_subplot=True, title="Test1", rasterized=rasterized)
     obs.image(ax=axes[1, 1], detcoords=True, show=False,
-              create_subplot=True, title="Test2")
+              create_subplot=True, title="Test2", rasterized=rasterized)
 
-    fig.savefig(reportCard_savepath)
+    fig.suptitle('ObsID {} | {} | {}'.format(
+        obs.obsid, obs.target, obs.detector))
 
-    test = obs.hyperscreen()
-    print("Created {}".format(reportCard_savepath))
+    if save is True:
+        fig.savefig(reportCard_savepath, rasterized=rasterized, dpi=dpi)
+
+    if verbose is True:
+        print("Created {}".format(reportCard_savepath))
+
+    if show is True:
+        plt.show()
 
     # for obs in evt1_files[4]:
     #     results = clean(obs)
@@ -77,6 +85,9 @@ def getArgs(argv=None):
 
     parser.add_argument('-t', '--testdata', action='store_true',
                         help='Use the supplied test data as the input archive path')
+
+    parser.add_argument('-v', '--verbose', action='store_true',
+                        help='Make HyperScreen chatty on stdout.')
 
     parser.add_argument('-w', '--windowstest', action='store_true',
                         help='Point to my Windows database')
@@ -151,7 +162,7 @@ def inventoryArchive(archivepath, limit=None, verbose=False):
 
         if verbose is True:
             print("Sorting {} | ObsID {}, {}, {} ksec".format(
-                evt1_file.split('/')[-1], hdr['OBS_ID'], hdr['DETNAM'], round(hdr['EXPOSURE']/1000, 2)))
+                evt1_file.split('/')[-1], hdr['OBS_ID'], hdr['DETNAM'], round(hdr['EXPOSURE'] / 1000, 2)))
 
     return evt1_files, hrcI_files, hrcS_files
 
@@ -160,14 +171,29 @@ def main():
     """Console script for hyperscreen."""
 
     args = getArgs()
+
+    verbose = args.verbose
+
     savepath, archivepath = setPaths(args)
     evt1_files, hrcI_files, hrcS_files = inventoryArchive(
-        archivepath, limit=1, verbose=False)
+        archivepath, limit=None, verbose=verbose)
 
-    for observation in hrcI_files:
+    improvement = []
+    exptime = []
+
+    for observation in evt1_files:
         obs = hyperscreen.HRCevt1(observation)
-        obs.boomerang()
-        obs.boomerang(mask=obs.data['Hyperbola test passed'])
+        results = obs.hyperscreen()
+        improvement.append(results['Percent improvement'])
+        exptime.append(obs.exptime / 1000)
+
+    fig, ax = plt.subplots()
+    ax.plot(exptime, improvement, linewidth=0, marker='.')
+    ax.set_xlabel("Exposure Time (ksec)")
+    ax.set_ylabel("Percent Improvement over Legacy Test")
+
+    plt.show()
+    #reportCard(obs, savepath=savepath, verbose=verbose, rasterized=True)
 
     # hyperscreen.styleplots()
 

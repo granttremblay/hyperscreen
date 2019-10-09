@@ -167,11 +167,11 @@ class HRCevt1:
 
         # This is a really stupid way to threshold
         median = np.nanmedian(nozero_img)
-        thresh = median*5
+        thresh = median * 5
 
         thresh_img = nozero_img
         thresh_img[thresh_img < thresh] = np.nan
-        thresh_img[:int(bins[1]/2), :] = np.nan
+        thresh_img[:int(bins[1] / 2), :] = np.nan
     #     thresh_img[:,int(bins[1]-5):] = np.nan
         return thresh_img
 
@@ -183,8 +183,8 @@ class HRCevt1:
         data = self.data
 
         #taprange = range(data['crsu'].min(), data['crsu'].max() + 1)
-        taprange_u = range(data['crsu'].min(), data['crsu'].max() + 1)
-        taprange_v = range(data['crsv'].min(), data['crsv'].max() + 1)
+        taprange_u = range(data['crsu'].min() - 1, data['crsu'].max() + 1)
+        taprange_v = range(data['crsv'].min() - 1, data['crsv'].max() + 1)
 
         bins = [200, 200]  # number of bins
 
@@ -195,6 +195,8 @@ class HRCevt1:
         for tap in taprange_u:
             # Do the U axis
             tapmask_u = data[data['crsu'] == tap].index.values
+            if len(tapmask_u) < 2:
+                continue
             keep_u = np.isfinite(data['fb_u'][tapmask_u])
 
             hist_u, xbounds_u, ybounds_u = np.histogram2d(
@@ -218,6 +220,8 @@ class HRCevt1:
         for tap in taprange_v:
             # Now do the V axis:
             tapmask_v = data[data['crsv'] == tap].index.values
+            if len(tapmask_v) < 2:
+                continue
             keep_v = np.isfinite(data['fb_v'][tapmask_v])
 
             hist_v, xbounds_v, ybounds_v = np.histogram2d(
@@ -266,7 +270,7 @@ class HRCevt1:
         legacy_hyperbola_test_failures = sum(
             self.data['Hyperbola test failed'])
         percent_legacy_hyperbola_test_rejected = round(
-            ((legacy_hyperbola_test_failures / self.numevents) * 100), 2)
+            ((legacy_hyperbola_test_failures / self.goodtimeevents) * 100), 2)
 
         percent_improvement_over_legacy_test = round(
             (percent_tapscreen_rejected - percent_legacy_hyperbola_test_rejected), 2)
@@ -390,7 +394,7 @@ class HRCevt1:
         # print("{0: <25}| ".format(""))
         return hyperzones, hypermasks
 
-    def boomerang(self, mask=None, show=True, plot_legacy_zone=True, title=None, cmap=None, savepath=None, create_subplot=False, ax=None):
+    def boomerang(self, mask=None, show=True, plot_legacy_zone=True, title=None, cmap=None, savepath=None, create_subplot=False, ax=None, rasterized=True):
 
         # You can plot the image on axes of a subplot by passing
         # that axis to this function. Here are some switches to enable that.
@@ -408,33 +412,33 @@ class HRCevt1:
 
         if mask is not None:
             self.ax.scatter(self.data['fb_u'], self.data['fp_u'],
-                            c=self.data['sumamps'], cmap='bone', s=0.3, alpha=0.8, rasterized=True)
+                            c=self.data['sumamps'], cmap='bone', s=0.3, alpha=0.8, rasterized=rasterized)
 
             frame = self.ax.scatter(self.data['fb_u'][mask], self.data['fp_u'][mask],
-                                    c=self.data['sumamps'][mask], cmap=cmap, s=0.5, rasterized=True)
+                                    c=self.data['sumamps'][mask], cmap=cmap, s=0.5, rasterized=rasterized)
 
         else:
             frame = self.ax.scatter(self.data['fb_u'], self.data['fp_u'],
-                                    c=self.data['sumamps'], cmap=cmap, s=0.5, rasterized=True)
+                                    c=self.data['sumamps'], cmap=cmap, s=0.5, rasterized=rasterized)
 
         if plot_legacy_zone is True:
             hyperzones, hypermasks = self.legacy_hyperbola_test(
                 tolerance=0.035)
             self.ax.plot(self.data["fb_u"], hyperzones["zone_u_lowerbound"],
-                         'o', markersize=0.3, color='black', alpha=0.8, rasterized=True)
+                         'o', markersize=0.3, color='black', alpha=0.8, rasterized=rasterized)
             self.ax.plot(self.data["fb_u"], -1 * hyperzones["zone_u_lowerbound"],
-                         'o', markersize=0.3, color='black', alpha=0.8, rasterized=True)
+                         'o', markersize=0.3, color='black', alpha=0.8, rasterized=rasterized)
 
             self.ax.plot(self.data["fb_u"], hyperzones["zone_u_upperbound"],
-                         'o', markersize=0.3, color='black', alpha=0.8, rasterized=True)
+                         'o', markersize=0.3, color='black', alpha=0.8, rasterized=rasterized)
             self.ax.plot(self.data["fb_u"], -1 * hyperzones["zone_u_upperbound"],
-                         'o', markersize=0.3, color='black', alpha=0.8, rasterized=True)
+                         'o', markersize=0.3, color='black', alpha=0.8, rasterized=rasterized)
 
         self.ax.grid(False)
 
         if title is None:
             self.ax.set_title('{} | {} | ObsID {} | {} ksec | {} counts'.format(
-                self.target, self.detector, self.obsid, round(self.exptime/1000, 1), self.numevents))
+                self.target, self.detector, self.obsid, round(self.exptime / 1000, 1), self.numevents))
         else:
             self.ax.set_title(title)
 
@@ -456,7 +460,7 @@ class HRCevt1:
             plt.savefig(savepath, dpi=150, bbox_inches='tight')
             print('Saved boomerang figure to: {}'.format(savepath))
 
-    def image(self, masked_x=None, masked_y=None, detcoords=False, title=None, cmap=None, show=True, savepath=None, create_subplot=False, ax=None):
+    def image(self, masked_x=None, masked_y=None, xlim=None, ylim=None, detcoords=False, title=None, cmap=None, show=True, savepath=None, create_subplot=False, ax=None):
         '''
         Create a quicklook image, in detector or sky coordinates, of the 
         observation. The image will be binned to 400x400. 
@@ -512,6 +516,11 @@ class HRCevt1:
         elif detcoords is True:
             self.ax.set_xlabel("Detector X")
             self.ax.set_ylabel("Detector Y")
+
+        if xlim is not None:
+            self.ax.set_xlim(xlim)
+        if ylim is not None:
+            self.ax.set_ylim(ylim)
 
         if show is True:
             plt.show(block=True)
