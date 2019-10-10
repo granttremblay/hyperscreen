@@ -6,13 +6,20 @@
 from __future__ import division
 from __future__ import print_function
 
-import multiprocessing
-import hyperscreen as hyperscreen
 import os
 import sys
 import time
 import glob
 import argparse
+
+
+import multiprocessing
+import pickle
+from functools import partial
+
+
+import hyperscreen as hyperscreen
+
 
 from astropy.io import fits
 
@@ -80,6 +87,9 @@ def getArgs(argv=None):
     parser.add_argument('-a', '--archivepath', help='Absolute PATH to Archive of EVT1 Files',
                         default='/Users/grant/Science/HRC_Database/EVT1_Files/')
 
+    parser.add_argument('-p', '--picklename', help='Name of the Pickle you would like to create',
+                        default='hyperscreen_master_pickle.pkl')
+
     parser.add_argument('-s', '--savepath', help='Absolute PATH to location in which to save all outputs from this script, including .pdf files of plots. If not specified, this location will default to your Desktop.',
                         default=os.path.join(os.environ['HOME'], 'Desktop/HyperScreen_Results/'))
 
@@ -97,7 +107,7 @@ def getArgs(argv=None):
 
 def setPaths(args, verbose=False):
     '''
-    Set paths for this hyperscreen test 
+    Set paths for this hyperscreen test
     '''
 
     savepath = args.savepath
@@ -121,7 +131,7 @@ def setPaths(args, verbose=False):
     return savepath, archivepath
 
 
-def inventoryArchive(archivepath, limit=None, verbose=False):
+def inventoryArchive(archivepath, limit=None, verbose=False, sort=False):
     ''' Parse the archive'''
 
     # Check to make sure the HRC database path is right
@@ -139,10 +149,6 @@ def inventoryArchive(archivepath, limit=None, verbose=False):
         sys.exit(
             'ERROR: No EVT1 files round in supplied archive path ({})'.format(archivepath))
 
-    # Let's split out by detector to keep things clean.
-    hrcI_files = []
-    hrcS_files = []
-
     if limit is None:
         master_list = evt1_files
     else:
@@ -152,19 +158,56 @@ def inventoryArchive(archivepath, limit=None, verbose=False):
             print('Limiting archive crawl to {} observations'.format(limit))
         master_list = evt1_files[:limit]
 
-    for evt1_file in master_list:
-        # Grab header for the second extension:
-        hdr = fits.getheader(evt1_file, 1)
-        if hdr['DETNAM'] == 'HRC-I':
-            hrcI_files.append(evt1_file)
-        elif hdr['DETNAM'] == 'HRC-S':
-            hrcS_files.append(evt1_file)
+    if sort is True:
+        # Let's split out by detector to keep things clean.
+        hrcI_files = []
+        hrcS_files = []
 
-        if verbose is True:
-            print("Sorting {} | ObsID {}, {}, {} ksec".format(
-                evt1_file.split('/')[-1], hdr['OBS_ID'], hdr['DETNAM'], round(hdr['EXPOSURE'] / 1000, 2)))
+        for evt1_file in master_list:
+            # Grab header for the second extension:
+            hdr = fits.getheader(evt1_file, 1)
+            if hdr['DETNAM'] == 'HRC-I':
+                hrcI_files.append(evt1_file)
+            elif hdr['DETNAM'] == 'HRC-S':
+                hrcS_files.append(evt1_file)
 
-    return evt1_files, hrcI_files, hrcS_files
+            if verbose is True:
+                print("Sorting {} | ObsID {}, {}, {} ksec".format(
+                    evt1_file.split('/')[-1], hdr['OBS_ID'], hdr['DETNAM'], round(hdr['EXPOSURE'] / 1000, 2)))
+
+        return evt1_files, hrcI_files, hrcS_files
+    elif sort is False:
+        print('Archive parsed. {} EVT1 files found.'.format(len(master_list)))
+        return master_list
+
+
+def poolClean(evt1file, verbose=True):
+
+    obs = hyperscreen.HRCevt1(evt1file)
+
+    if verbose is True:
+        print("Gathering HyperScreen performance statistics for {} | {}, {} ksec".format(
+            obs.obsid, obs.detector, round(obs.exptime/1000.,)))
+
+    try:
+        results_dict = obs.hyperscreen()
+        return results_dict
+    except:
+        print("ERROR on {} ({}, {} ksec), pressing on".format(
+            obs.obsid, obs.detector, round(obs.exptime/1000), 2))
+
+
+def screen_and_pickle_archive(evt1_file_list, savepath, picklename):
+
+    p = multiprocessing.Pool()
+    hyperscreen_dicts = p.map(poolClean, evt1_file_list)
+    p.close()
+    p.join()
+
+    with open(savepath + picklename, 'wb') as gherkin:
+        pickle.dump(hyperscreen_dicts, gherkin)
+        print("Pickled List of HyperScreen Result Dictonaries. Saved to {}".format(
+            savepath+picklename))
 
 
 def main():
@@ -175,40 +218,44 @@ def main():
     verbose = args.verbose
 
     savepath, archivepath = setPaths(args)
-    evt1_files, hrcI_files, hrcS_files = inventoryArchive(
-        archivepath, limit=None, verbose=verbose)
+    evt1_files = inventoryArchive(
+        archivepath, limit=None, verbose=verbose, sort=False)
 
-    improvement = []
-    exptime = []
+    screen_and_pickle_archive(
+        evt1_files, savepath=savepath, picklename=args.picklename)
 
-    for observation in evt1_files:
-        obs = hyperscreen.HRCevt1(observation)
-        results = obs.hyperscreen()
-        improvement.append(results['Percent improvement'])
-        exptime.append(obs.exptime / 1000)
+    # improvement=[]
+    # exptime=[]
 
-    fig, ax = plt.subplots()
-    ax.plot(exptime, improvement, linewidth=0, marker='.')
-    ax.set_xlabel("Exposure Time (ksec)")
-    ax.set_ylabel("Percent Improvement over Legacy Test")
+    # hyperscreen.styleplots()
 
-    plt.show()
-    #reportCard(obs, savepath=savepath, verbose=verbose, rasterized=True)
+    # for observation in evt1_files:
+    #     obs=hyperscreen.HRCevt1(observation)
+    #     # obs.boomerang(mask=obs.data['Hyperbola test passed'])
+    #     try:
+    #         results=obs.hyperscreen()
+    #         improvement.append(results['Percent improvement'])
+    #         exptime.append(obs.exptime / 1000)
+    #     except:
+    #         print("ERROR on {} ({}, {} ksec), pressing on".format(
+    #             obs.obsid, obs.detector, round(obs.exptime/1000), 2))
+    #         continue
+
+    # fig, ax=plt.subplots()
+    # ax.plot(exptime, improvement, linewidth=0, marker='.')
+    # ax.set_xlabel("Exposure Time (ksec)")
+    # ax.set_ylabel("Percent Improvement over Legacy Test")
+
+    # plt.show()
+
+    # reportCard(obs, savepath=savepath, verbose=verbose, rasterized=True)
 
     # hyperscreen.styleplots()
 
     # for evt1_file in evt1_files:
     #     reportCard(evt1_file, savepath=savepath)
 
-    # p = multiprocessing.Pool()
-    # hyperscreen_dicts = p.map(
-    #     multiprocess_clean, hrcI_files)
-    # p.close()
-    # p.join()
-
     # print(hyperscreen_dicts)
-
-
     # for evt1_file in evt1_files:
     #     obs = hyperscreen.HRCevt1(evt1_file)
     #     tapscreen_results_dict = obs.hyperscreen()
