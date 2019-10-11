@@ -18,6 +18,9 @@ import pytest
 
 from hyperscreen import hyperscreen
 
+# myPath = os.path.dirname(os.path.abspath(__file__))
+# sys.path.insert(0, myPath + '/../')
+
 # @pytest.fixture(scope="module")
 # def fits_object():
 #     print("Reading raw HRC-I EVT1 file with astropy.io.fits")
