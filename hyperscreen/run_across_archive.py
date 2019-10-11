@@ -262,4 +262,4 @@ def main():
     #     # obs.image(show=False, detcoords=True,
     #     #           savepath="/Users/grant/Desktop/image_test/{}.pdf".format(obs.obsid), create_subplot=False)
 if __name__ == "__main__":
-    sys.exit(main())  # pragma: no cover
+    sys.exit(main())
