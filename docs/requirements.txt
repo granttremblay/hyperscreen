@@ -1,1 +1,1 @@
-astropy_sphinx_theme
+astropy_sphinx_theme==1.1
