@@ -23,6 +23,10 @@ HyperScreen
 .. image:: https://coveralls.io/repos/github/granttremblay/hyperscreen/badge.svg?branch=master
         :target: https://coveralls.io/github/granttremblay/hyperscreen?branch=master
         :alt: Test Coverage
+        
+.. image:: https://pyup.io/repos/github/granttremblay/hyperscreen/shield.svg
+     :target: https://pyup.io/repos/github/granttremblay/hyperscreen/
+     :alt: Updates
 
 .. image:: http://img.shields.io/badge/powered%20by-AstroPy-orange.svg?style=flat
         :target: http://www.astropy.org/
