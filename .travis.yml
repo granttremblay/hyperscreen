@@ -3,6 +3,9 @@ python:
   - "2.7"
   - "3.6"      # current default Python on Travis CI
   - "3.7"
+# You need this to be able to test libraries that need a graphical environment, i.e. matplotlib
+services:
+  - xvfb
 # command to install dependencies
 install:
   # Install your own package using pip install & my setup.py
