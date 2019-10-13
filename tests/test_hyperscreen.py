@@ -14,7 +14,9 @@ import os
 from contextlib import contextmanager
 
 from astropy.io import fits
+import matplotlib
 import matplotlib.pyplot as plt
+matplotlib.use('Agg')
 
 import pytest
 
