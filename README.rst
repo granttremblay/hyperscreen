@@ -20,7 +20,7 @@ HyperScreen
         :alt: Build Status
 
 
-.. image:: https://coveralls.io/repos/github/granttremblay/hyperscreen/badge.svg?branch=master
+.. image:: https://img.shields.io/coveralls/github/granttremblay/hyperscreen
         :target: https://coveralls.io/github/granttremblay/hyperscreen?branch=master
         :alt: Test Coverage
         
