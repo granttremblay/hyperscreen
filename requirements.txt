@@ -1,6 +1,6 @@
 pytest==5.0.1; python_version >= '3.0'
 pytest==4.6.2; python_version < '3.0'
-setuptools==41.0.1
+setuptools==41.4.0
 pandas==0.24.2
 numpy==1.16.4
 astropy==3.2.1; python_version >= '3.0'
