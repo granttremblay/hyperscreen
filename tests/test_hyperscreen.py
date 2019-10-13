@@ -11,8 +11,10 @@ from __future__ import print_function
 
 import sys
 import os
+from contextlib import contextmanager
 
 from astropy.io import fits
+import matplotlib.pyplot as plt
 
 import pytest
 
@@ -45,6 +47,13 @@ def hrcS_evt1():
     hrcS_evt1 = hyperscreen.HRCevt1(hrcS_file)
     return hrcS_evt1
 
+@contextmanager
+def assert_plot_figures_added():
+    num_figures_before = plt.gcf().number
+    yield
+    num_figures_after = plt.gcf().number
+    assert num_figures_before < num_figures_after
+
 
 # def test_hrcI_evt1(hrcI_evt1):
 #     assert len(hrcI_evt1.data['fp_u']) == len(hrcI_evt1.data['time'])
@@ -73,3 +82,11 @@ def test_hyperscreen(hrcI_evt1, hrcS_evt1):
     assert isinstance(hyperscreen_hrcI, dict)
     # This will give a warning. You can have pytest ignore with pytest --disable-warnings
 
+def test_boomerang(hrcI_evt1, hrcS_evt1):
+    with assert_plot_figures_added():
+        hrcI_evt1.boomerang(mask=hrcI_evt1.data['Hyperbola test failed'], show=False)
+        hrcS_evt1.boomerang(show=False)
+
+
+
+    
