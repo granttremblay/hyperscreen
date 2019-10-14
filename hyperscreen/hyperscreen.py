@@ -21,9 +21,6 @@ import numpy as np
 np.seterr(divide='ignore')
 
 
-warnings.filterwarnings("ignore", category=RuntimeWarning)
-
-
 class HRCevt1:
     '''
     A more robust HRC EVT1 file. Includes explicit
@@ -32,7 +29,7 @@ class HRCevt1:
     Check out that cool new filtering algorithm!
     '''
 
-    def __init__(self, evt1file, as_astropy_table=False):
+    def __init__(self, evt1file, verbose=False, as_astropy_table=False):
 
         # Do a standard read in of the EVT1 fits table
         self.filename = evt1file
@@ -122,8 +119,15 @@ class HRCevt1:
             self.data.remove_column('status')
             self.data = self.data.to_pandas()
 
+        if verbose is True:
+            if as_astropy_table is True:
+                read_type = "Astropy Table"
+            else:
+                read_type = "Pandas DataFrame"
+            print("HRC EVT1 file {} (ObsID {}, {}, {} ksec) initialized as new HRCevt1 {}. ".format(evt1file.split('/')[-1], self.obsid, self.target, self.detector, read_type))
+
     def __str__(self):
-        return "HRC EVT1 object with {} events. Data is packaged as a Pandas Dataframe".format(self.numevents)
+        return "HRC EVT1 object with {} events. Data is packaged as a Pandas Dataframe (or an Astropy Table if as_astropy_table=True on initialization.)".format(self.numevents)
 
     def calculate_fp_fb(self):
         '''
@@ -170,7 +174,9 @@ class HRCevt1:
         thresh = median * 5
 
         thresh_img = nozero_img
-        thresh_img[thresh_img < thresh] = np.nan
+        # "If you don't ignore the warning, you'll get a warning" ~~ G. Tremblay
+        with np.errstate(invalid='ignore'):
+            thresh_img[thresh_img < thresh] = np.nan
         thresh_img[:int(bins[1] / 2), :] = np.nan
     #     thresh_img[:,int(bins[1]-5):] = np.nan
         return thresh_img

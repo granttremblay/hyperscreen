@@ -2,8 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-py.test unit tests for hyperscreen and related packages. 
-Currently, these are pretty dumb. 
+PyTest unit tests for hyperscreen and related packages. 
 """
 
 from __future__ import division
@@ -13,8 +12,11 @@ import sys
 import os
 from contextlib import contextmanager
 
+import astropy
 from astropy.io import fits
+
 import pandas as pd
+
 import matplotlib.pyplot as plt
 
 import pytest
@@ -77,12 +79,12 @@ def test_HRCevt1(hrcI_evt1, hrcS_evt1):
     assert match_I
     assert match_S
 
-# def test_astropy_return():
-#     hrcI_file = os.path.abspath(os.path.dirname(os.path.abspath(__file__))+'/data/hrcI_evt1_testfile.fits.gz')
-#     hrcI_evt1_df = hyperscreen.HRCevt1(hrcI_file)
-#     hrcI_evt1_table = hyperscreen.HRCevt1(hrcI_file, as_astropy_table=True)
-    # assert isinstance(hrcI_evt1_df, pd.DataFrame)
-    # assert type(hrcI_evt1_table) is astropy.table.table.Table
+def test_astropy_return():
+    hrcI_file = os.path.abspath(os.path.dirname(os.path.abspath(__file__))+'/data/hrcI_evt1_testfile.fits.gz')
+    hrcI_evt1_df = hyperscreen.HRCevt1(hrcI_file)
+    hrcI_evt1_table = hyperscreen.HRCevt1(hrcI_file, as_astropy_table=True)
+    assert isinstance(hrcI_evt1_df.data, pd.DataFrame)
+    assert type(hrcI_evt1_table.data) is astropy.table.table.Table
 
 
 

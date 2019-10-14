@@ -87,6 +87,9 @@ def getArgs(argv=None):
     parser.add_argument('-a', '--archivepath', help='Absolute PATH to Archive of EVT1 Files',
                         default='/Users/grant/Science/HRC_Database/EVT1_Files/')
 
+    parser.add_argument('-h', '--hydra', action='store_true',
+                        help='Point to the HRC Database stored on the Smithsonian Hydra Cluster')   
+
     parser.add_argument('-p', '--picklename', help='Name of the Pickle you would like to create',
                         default='hyperscreen_master_pickle.pkl')
 
@@ -122,6 +125,8 @@ def setPaths(args, verbose=False):
         archivepath = '../tests/data/'
     elif args.windowstest is True:
         archivepath = '/mnt/c/Users/grant/HRCOps/Datalake/'
+    elif args.hydra is True:
+        archivepath = '/pool/sao/gtremblay/HRC/'
     else:
         archivepath = args.archivepath
 
