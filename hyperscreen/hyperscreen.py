@@ -114,7 +114,7 @@ class HRCevt1:
             self.data['U hyperbolic test failed'], self.data['V hyperbolic test failed'])))
 
         if self.hyperbola_passes + self.hyperbola_failures != self.numevents:
-            print("Warning: Number of Hyperbola Test Failures and Passes ({}) does not equal total number of events ({}).".format(
+            warnings.warn("Number of Hyperbola Test Failures and Passes ({}) does not equal total number of events ({}).".format(
                 self.hyperbola_passes + self.hyperbola_failures, self.numevents))
 
         if as_astropy_table is False:
