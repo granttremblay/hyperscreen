@@ -466,7 +466,7 @@ class HRCevt1:
             plt.savefig(savepath, dpi=150, bbox_inches='tight')
             print('Saved boomerang figure to: {}'.format(savepath))
 
-    def image(self, masked_x=None, masked_y=None, xlim=None, ylim=None, detcoords=False, title=None, cmap=None, show=True, savepath=None, create_subplot=False, ax=None):
+    def image(self, masked_x=None, masked_y=None, xlim=None, ylim=None, detcoords=False, title=None, cmap=None, show=True, rasterized=True, savepath=None, create_subplot=False, ax=None):
         '''
         Create a quicklook image, in detector or sky coordinates, of the 
         observation. The image will be binned to 400x400. 
@@ -509,7 +509,7 @@ class HRCevt1:
             cmap = 'viridis'
 
         self.ax.imshow(img_data, extent=extent, norm=LogNorm(),
-                       interpolation=None, cmap=cmap, origin='lower')
+                       interpolation=None, rasterized=rasterized, cmap=cmap, origin='lower')
 
         if title is None:
             self.ax.set_title("ObsID {} | {} | {} | {:,} events".format(
@@ -550,3 +550,10 @@ def styleplots():
     plt.rcParams['axes.labelsize'] = labelsizes
     plt.rcParams['xtick.labelsize'] = labelsizes
     plt.rcParams['ytick.labelsize'] = labelsizes
+
+
+def main():
+    pass
+
+if __name__ == "__main__":
+    sys.exit(main())
