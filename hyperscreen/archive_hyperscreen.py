@@ -60,8 +60,6 @@ def reportCard(evt1_object, savepath, show=True, save=True, rasterized=True, dpi
         plt.show()
 
 
-
-
 def getArgs(argv=None):
     parser = argparse.ArgumentParser(
         description='Test HyperScreen across an archive of HRC Observations')
@@ -70,7 +68,7 @@ def getArgs(argv=None):
                         default='/Users/grant/Science/HRC_Database/EVT1_Files/')
 
     parser.add_argument('-c', '--cluster', action='store_true',
-                        help='Point to the HRC Database stored on the Smithsonian Hydra Cluster')   
+                        help='Point to the HRC Database stored on the Smithsonian Hydra Cluster')
 
     parser.add_argument('-p', '--picklename', help='Name of the Pickle you would like to create',
                         default='hyperscreen_master_pickle.pkl')
@@ -104,7 +102,8 @@ def setPaths(args, verbose=False):
         print("Plots will be saved in {}".format(savepath))
 
     if args.testdata is True:
-        archivepath = '../tests/data/'
+        archivepath = os.path.abspath(os.path.dirname(
+            os.path.abspath(__file__)) + '/../tests/data/')
     elif args.windowstest is True:
         archivepath = '/mnt/c/Users/grant/HRCOps/Datalake/'
     elif args.cluster is True:
@@ -170,7 +169,6 @@ def inventoryArchive(archivepath, limit=None, verbose=False, sort=False):
 
 def poolScreen(evt1file, verbose=False, savepath=None, make_reportCard=True, show=False):
 
-    print(savepath)
     obs = hyperscreen.HRCevt1(evt1file)
 
     reportCard(obs, show=show, savepath=savepath)
@@ -185,8 +183,8 @@ def poolScreen(evt1file, verbose=False, savepath=None, make_reportCard=True, sho
             reportCard(show=False, savepath=savepath)
         return results_dict
     except:
-        print("ERROR on {} ({}, {} ksec), pressing on".format(
-            obs.obsid, obs.detector, round(obs.exptime/1000), 2))
+        print("ERROR on {} ({} | {} ksec | {:,} events | {:,} good time events), pressing on".format(
+            obs.obsid, obs.detector, round(obs.exptime/1000, 2), obs.numevents, obs.goodtimeevents))
 
 
 def screenArchive(evt1_file_list, savepath=None, verbose=False, create_pickle=False, picklename=None):
@@ -194,14 +192,15 @@ def screenArchive(evt1_file_list, savepath=None, verbose=False, create_pickle=Fa
     p = multiprocessing.Pool()
 
     # This is how you pass a keyword argument to a pool.Map
-    kwargs = {'verbose' : verbose,  # be chatty
-              'savepath': savepath, # save the products, like report cards and hyperscreen results list-'o-dicts
-              'make_reportCard': True, # make report cards? 
-              'show': False} # show these? *** DEFINITELY a bad idea if you're screening more than 10 evt1 files! *** 
-    
+    kwargs = {'verbose': verbose,  # be chatty
+              # save the products, like report cards and hyperscreen results list-'o-dicts
+              'savepath': savepath,
+              'make_reportCard': True,  # make report cards?
+              'show': False}  # show these? *** DEFINITELY a bad idea if you're screening more than 10 evt1 files! ***
+
     # Passing kwargs to poolScreen requires wrapping with partial()
     hyperscreen_dicts = p.map(partial(poolScreen, **kwargs), evt1_file_list)
-    
+
     # Now close the Pool
     p.close()
     p.join()
@@ -216,8 +215,8 @@ def screenArchive(evt1_file_list, savepath=None, verbose=False, create_pickle=Fa
                 print("Pickled List of HyperScreen Result Dictonaries. Saved to {}".format(
                     savepath+picklename))
     elif pickle_unspecified:
-        raise Exception('create_pickle is True but picklename is None (i.e. unspecified). Please give a pickle name!')
-
+        raise Exception(
+            'create_pickle is True but picklename is None (i.e. unspecified). Please give a pickle name!')
 
     return hyperscreen_dicts
 
@@ -233,8 +232,10 @@ def main():
     evt1_files = inventoryArchive(
         archivepath, limit=None, verbose=verbose, sort=False)
 
-    screenArchive(
+    hyperscreen_dicts = screenArchive(
         evt1_files, savepath=savepath, verbose=verbose, create_pickle=False, picklename=args.picklename)
+
+    print(hyperscreen_dicts)
 
     # improvement=[]
     # exptime=[]
@@ -267,6 +268,7 @@ def main():
     # for evt1_file in evt1_files:
     #     reportCard(evt1_file, savepath=savepath)
 
+
     # print(hyperscreen_dicts)
     # for evt1_file in evt1_files:
     #     obs = hyperscreen.HRCevt1(evt1_file)
@@ -276,6 +278,6 @@ def main():
 if __name__ == "__main__":
 
     start_time = time.time()
-    main()
+    main()  # pragma: no cover
     runtime = round((time.time() - start_time) / 60, 3)
     sys.exit(print("Finished in {} minutes".format(runtime)))

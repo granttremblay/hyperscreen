@@ -7,6 +7,9 @@ for """
 from __future__ import division
 from __future__ import print_function
 
+import sys
+import os
+
 import warnings
 
 import matplotlib as mpl
@@ -124,7 +127,8 @@ class HRCevt1:
                 read_type = "Astropy Table"
             else:
                 read_type = "Pandas DataFrame"
-            print("HRC EVT1 file {} (ObsID {}, {}, {} ksec) initialized as new HRCevt1 {}. ".format(evt1file.split('/')[-1], self.obsid, self.target, self.detector, read_type))
+            print("HRC EVT1 file {} (ObsID {}, {}, {} ksec) initialized as new HRCevt1 {}. ".format(
+                evt1file.split('/')[-1], self.obsid, self.target, self.detector, read_type))
 
     def __str__(self):
         return "HRC EVT1 object with {} events. Data is packaged as a Pandas Dataframe (or an Astropy Table if as_astropy_table=True on initialization.)".format(self.numevents)
@@ -554,6 +558,7 @@ def styleplots():
 
 def main():
     pass
+
 
 if __name__ == "__main__":
     sys.exit(main())

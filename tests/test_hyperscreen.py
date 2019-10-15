@@ -22,10 +22,11 @@ import matplotlib.pyplot as plt
 import pytest
 
 from hyperscreen import hyperscreen
-    
+
 '''
 This test module uses pytest Fixtures defined in conftest.py
 '''
+
 
 @contextmanager
 def assert_plot_figures_added():
@@ -33,7 +34,6 @@ def assert_plot_figures_added():
     yield
     num_figures_after = plt.gcf().number
     assert num_figures_before < num_figures_after
-
 
 
 def test_HRCevt1(hrcI_evt1, hrcS_evt1):
@@ -47,7 +47,8 @@ def test_HRCevt1(hrcI_evt1, hrcS_evt1):
 
 
 def test_astropy_return():
-    hrcI_file = os.path.abspath(os.path.dirname(os.path.abspath(__file__))+'/data/hrcI_evt1_testfile.fits.gz')
+    hrcI_file = os.path.abspath(os.path.dirname(
+        os.path.abspath(__file__))+'/data/hrcI_evt1_testfile.fits.gz')
     hrcI_evt1_df = hyperscreen.HRCevt1(hrcI_file)
     hrcI_evt1_table = hyperscreen.HRCevt1(hrcI_file, as_astropy_table=True)
     assert isinstance(hrcI_evt1_df.data, pd.DataFrame)
@@ -62,6 +63,6 @@ def test_hyperscreen(hrcI_evt1, hrcS_evt1):
 
 def test_boomerang(hrcI_evt1, hrcS_evt1):
     with assert_plot_figures_added():
-        hrcI_evt1.boomerang(mask=hrcI_evt1.data['Hyperbola test failed'], show=False)
+        hrcI_evt1.boomerang(
+            mask=hrcI_evt1.data['Hyperbola test failed'], show=False)
         hrcS_evt1.boomerang(show=False)
-

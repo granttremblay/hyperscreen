@@ -1,3 +1,0 @@
-https://stackoverflow.com/questions/41748464/pytest-cannot-import-module-while-python-can
-
-DON'T PUT AN __INIT__.PY FILE IN TESTS/ WHEN USING PY.TEST
