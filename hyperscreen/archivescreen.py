@@ -26,7 +26,7 @@ import warnings
 from hyperscreen import hypercore
 
 
-def reportCard(evt1_object, savepath, show=True, save=True, rasterized=True, dpi=150, verbose=False):
+def reportCard(evt1_object, savepath, show=True, save=True, rasterized=True, dpi=150, verbose=False): # pragma: no cover
 
     obs = evt1_object
 
@@ -58,6 +58,8 @@ def reportCard(evt1_object, savepath, show=True, save=True, rasterized=True, dpi
 
     if show is True:
         plt.show()
+
+    plt.close()
 
 
 def getArgs(argv=None):

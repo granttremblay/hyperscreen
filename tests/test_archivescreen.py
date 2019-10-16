@@ -46,8 +46,3 @@ def test_getArgs():
     assert parser.savepath == '/hello/'
     assert parser.archivepath == '/hi/there/'
 
-def test_reportCard(hrcI_evt1):
-    from .test_hypercore import assert_plot_figures_added
-    with assert_plot_figures_added():
-        archivescreen.reportCard(hrcI_evt1, savepath='blah', show=False, save=False)
-
