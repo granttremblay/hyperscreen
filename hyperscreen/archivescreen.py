@@ -23,7 +23,7 @@ import matplotlib.pyplot as plt
 
 import warnings
 
-import hyperscreen
+from hyperscreen import hypercore
 
 
 def reportCard(evt1_object, savepath, show=True, save=True, rasterized=True, dpi=150, verbose=False):
@@ -88,7 +88,7 @@ def getArgs(argv=None):
     return parser.parse_args(argv)
 
 
-def setPaths(args, verbose=False):
+def setPaths(args, verbose=False): # pragma: no cover
     '''
     Set paths for this hyperscreen test
     '''
@@ -167,9 +167,9 @@ def inventoryArchive(archivepath, limit=None, verbose=False, sort=False):
         return master_list
 
 
-def poolScreen(evt1file, verbose=False, savepath=None, make_reportCard=True, show=False):
+def poolScreen(evt1file, verbose=False, savepath=None, make_reportCard=True, show=False): # pragma: no cover
 
-    obs = hyperscreen.HRCevt1(evt1file)
+    obs = hypercore.HRCevt1(evt1file)
 
     reportCard(obs, show=show, savepath=savepath)
 
@@ -187,7 +187,7 @@ def poolScreen(evt1file, verbose=False, savepath=None, make_reportCard=True, sho
             obs.obsid, obs.detector, round(obs.exptime/1000, 2), obs.numevents, obs.goodtimeevents))
 
 
-def screenArchive(evt1_file_list, savepath=None, verbose=False, create_pickle=False, picklename=None):
+def screenArchive(evt1_file_list, savepath=None, verbose=False, create_pickle=False, picklename=None): # pragma: no cover
 
     p = multiprocessing.Pool()
 
@@ -221,7 +221,7 @@ def screenArchive(evt1_file_list, savepath=None, verbose=False, create_pickle=Fa
     return hyperscreen_dicts
 
 
-def main():
+def main(): # pragma: no cover
     """Console script for hyperscreen."""
 
     args = getArgs()
