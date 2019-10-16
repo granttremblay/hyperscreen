@@ -26,7 +26,7 @@ import warnings
 from hyperscreen import hypercore
 
 
-def reportCard(evt1_object, savepath, show=True, save=True, rasterized=True, dpi=150, verbose=False): # pragma: no cover
+def reportCard(evt1_object, savepath, show=True, save=True, rasterized=True, dpi=150, verbose=False):  # pragma: no cover
 
     obs = evt1_object
 
@@ -75,6 +75,9 @@ def getArgs(argv=None):
     parser.add_argument('-p', '--picklename', help='Name of the Pickle you would like to create',
                         default='hyperscreen_master_pickle.pkl')
 
+    parser.add_argument('-r', '--reportcard', help='Make Report Card .pdf files while screening Archive? Defaults to True.',
+                        default=True)
+
     parser.add_argument('-s', '--savepath', help='Absolute PATH to location in which to save all outputs from this script, including .pdf files of plots. If not specified, this location will default to your Desktop.',
                         default=os.path.join(os.environ['HOME'], 'Desktop/HyperScreen_Results/'))
 
@@ -90,7 +93,7 @@ def getArgs(argv=None):
     return parser.parse_args(argv)
 
 
-def setPaths(args, verbose=False): # pragma: no cover
+def setPaths(args, verbose=False):  # pragma: no cover
     '''
     Set paths for this hyperscreen test
     '''
@@ -169,27 +172,31 @@ def inventoryArchive(archivepath, limit=None, verbose=False, sort=False):
         return master_list
 
 
-def poolScreen(evt1file, verbose=False, savepath=None, make_reportCard=True, show=False): # pragma: no cover
+def poolScreen(evt1file, verbose=False, savepath=None, make_reportCard=True, show=False):  # pragma: no cover
 
     obs = hypercore.HRCevt1(evt1file)
-
-    reportCard(obs, show=show, savepath=savepath)
 
     if verbose is True:
         print("Gathering HyperScreen performance statistics for {} | {}, {} ksec".format(
             obs.obsid, obs.detector, round(obs.exptime/1000.,)))
 
+    if make_reportCard is True:
+        reportCard(obs, show=show, savepath=savepath)
+        if verbose is True:
+            print("Report Card generated for {} | {}, {} ksec".format(
+                obs.obsid, obs.detector, round(obs.exptime/1000.,)))
+
     try:
         results_dict = obs.hyperscreen()
         if make_reportCard is True:
-            reportCard(show=False, savepath=savepath)
+            reportCard(obs, show=False, savepath=savepath)
         return results_dict
     except:
         print("ERROR on {} ({} | {} ksec | {:,} events | {:,} good time events), pressing on".format(
             obs.obsid, obs.detector, round(obs.exptime/1000, 2), obs.numevents, obs.goodtimeevents))
 
 
-def screenArchive(evt1_file_list, savepath=None, verbose=False, create_pickle=False, picklename=None): # pragma: no cover
+def screenArchive(evt1_file_list, savepath=None, verbose=False, make_reportCard=True, create_pickle=False, picklename=None, show=False):  # pragma: no cover
 
     p = multiprocessing.Pool()
 
@@ -197,8 +204,8 @@ def screenArchive(evt1_file_list, savepath=None, verbose=False, create_pickle=Fa
     kwargs = {'verbose': verbose,  # be chatty
               # save the products, like report cards and hyperscreen results list-'o-dicts
               'savepath': savepath,
-              'make_reportCard': True,  # make report cards?
-              'show': False}  # show these? *** DEFINITELY a bad idea if you're screening more than 10 evt1 files! ***
+              'make_reportCard': make_reportCard,  # make report cards?
+              'show': show}  # show these? *** DEFINITELY a bad idea if you're screening more than 10 evt1 files! ***
 
     # Passing kwargs to poolScreen requires wrapping with partial()
     hyperscreen_dicts = p.map(partial(poolScreen, **kwargs), evt1_file_list)
@@ -223,21 +230,17 @@ def screenArchive(evt1_file_list, savepath=None, verbose=False, create_pickle=Fa
     return hyperscreen_dicts
 
 
-def main(): # pragma: no cover
+def main():  # pragma: no cover
     """Console script for hyperscreen."""
 
     args = getArgs()
 
-    verbose = args.verbose
-
     savepath, archivepath = setPaths(args)
     evt1_files = inventoryArchive(
-        archivepath, limit=None, verbose=verbose, sort=False)
+        archivepath, limit=None, verbose=args.verbose, sort=False)
 
     hyperscreen_dicts = screenArchive(
-        evt1_files, savepath=savepath, verbose=verbose, create_pickle=False, picklename=args.picklename)
-
-    print(hyperscreen_dicts)
+        evt1_files, savepath=savepath, verbose=args.verbose, make_reportCard=args.reportcard, create_pickle=False, picklename=args.picklename)
 
     # improvement=[]
     # exptime=[]
@@ -269,7 +272,6 @@ def main(): # pragma: no cover
 
     # for evt1_file in evt1_files:
     #     reportCard(evt1_file, savepath=savepath)
-
 
     # print(hyperscreen_dicts)
     # for evt1_file in evt1_files:
