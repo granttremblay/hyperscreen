@@ -1,4 +1,4 @@
 {
-    "python.pythonPath": "C:\\Users\\grant\\Anaconda\\python.exe",
+    "python.pythonPath": "/Users/grant/Anaconda/bin/python",
     "restructuredtext.confPath": "${workspaceFolder}\\docs"
 }

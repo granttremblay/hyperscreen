@@ -6,6 +6,7 @@
 from __future__ import division
 from __future__ import print_function
 
+from hyperscreen import hypercore
 import os
 import sys
 import time
@@ -24,8 +25,6 @@ import matplotlib.pyplot as plt
 import warnings
 warnings.filterwarnings("ignore")
 
-from hyperscreen import hypercore
-
 
 def reportCard(evt1_object, savepath, show=True, save=True, rasterized=True, dpi=150, verbose=False):  # pragma: no cover
 
@@ -35,7 +34,7 @@ def reportCard(evt1_object, savepath, show=True, save=True, rasterized=True, dpi
         print("Doing {}, {}".format(obs.obsid, obs.detector))
 
     reportCard_savepath = os.path.join(
-        savepath, '{}_{}_{}_hyperReport.pdf'.format(obs.obsid, obs.target, obs.detector))
+        savepath, '{}_{}_{}_hyperReport.pdf'.format(obs.obsid, obs.target.replace(' ', '_'), obs.detector))
     fig, axes = plt.subplots(2, 2, figsize=(10, 10), sharey='row')
 
     obs.boomerang(mask=obs.data['Hyperbola test passed'], ax=axes[0, 0], create_subplot=True,
