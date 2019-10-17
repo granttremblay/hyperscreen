@@ -22,6 +22,7 @@ from astropy.io import fits
 import matplotlib.pyplot as plt
 
 import warnings
+warnings.filterwarnings("ignore")
 
 from hyperscreen import hypercore
 

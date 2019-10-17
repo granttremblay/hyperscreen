@@ -205,7 +205,7 @@ class HRCevt1:
         for tap in taprange_u:
             # Do the U axis
             tapmask_u = data[data['crsu'] == tap].index.values
-            if len(tapmask_u) < 2:
+            if len(tapmask_u) < 20:
                 continue
             keep_u = np.isfinite(data['fb_u'][tapmask_u])
 
@@ -230,7 +230,7 @@ class HRCevt1:
         for tap in taprange_v:
             # Now do the V axis:
             tapmask_v = data[data['crsv'] == tap].index.values
-            if len(tapmask_v) < 2:
+            if len(tapmask_v) < 20:
                 continue
             keep_v = np.isfinite(data['fb_v'][tapmask_v])
 

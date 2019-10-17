@@ -61,6 +61,12 @@ def test_hyperscreen(hrcI_evt1, hrcS_evt1):
     assert isinstance(hyperscreen_hrcI, dict)
 
 
+def test_hyperscreen_sparsetap(hrcS_evt1_sparsetap):
+    hyperscreen_hrcS_sparsetap = hrcS_evt1_sparsetap.hyperscreen()
+    print(hyperscreen_hrcS_sparsetap)
+    assert isinstance(hyperscreen_hrcS_sparsetap, dict)
+
+
 def test_boomerang(hrcI_evt1, hrcS_evt1):
     with assert_plot_figures_added():
         hrcI_evt1.boomerang(
