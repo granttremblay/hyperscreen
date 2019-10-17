@@ -20,6 +20,7 @@ from functools import partial
 
 from astropy.io import fits
 
+from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
 
 import warnings
@@ -35,29 +36,54 @@ def reportCard(evt1_object, savepath, show=True, save=True, rasterized=True, dpi
 
     reportCard_savepath = os.path.join(
         savepath, '{}_{}_{}_hyperReport.pdf'.format(obs.obsid, obs.target.replace(' ', '_'), obs.detector))
-    fig, axes = plt.subplots(2, 2, figsize=(10, 10), sharey='row')
 
-    obs.boomerang(mask=obs.data['Hyperbola test passed'], ax=axes[0, 0], create_subplot=True,
-                  show=False, title='Legacy Hyperbola Test', cmap='magma', rasterized=rasterized)
-    obs.boomerang(ax=axes[0, 1], create_subplot=True,
-                  show=False, title='Test2', cmap='inferno', rasterized=rasterized)
+    with PdfPages(reportCard_savepath) as pdf:
 
-    obs.image(ax=axes[1, 0], detcoords=True, show=False,
-              create_subplot=True, title="Test1", rasterized=rasterized)
-    obs.image(ax=axes[1, 1], detcoords=True, show=False,
-              create_subplot=True, title="Test2", rasterized=rasterized)
+        # MAKE PAGE 1
 
-    fig.suptitle('ObsID {} | {} | {}'.format(
-        obs.obsid, obs.target, obs.detector))
+        fig, axes = plt.subplots(2, 2, figsize=(10, 10), sharey='row')
 
-    if save is True:
-        fig.savefig(reportCard_savepath, dpi=dpi)
+        obs.boomerang(mask=obs.data['Hyperbola test passed'], ax=axes[0, 0], create_subplot=True,
+                      show=False, title='Legacy Hyperbola Test', cmap='magma', rasterized=rasterized)
+        obs.boomerang(ax=axes[0, 1], create_subplot=True,
+                      show=False, title='Test2', cmap='inferno', rasterized=rasterized)
 
-    if verbose is True:
-        print("Created {}".format(reportCard_savepath))
+        obs.image(ax=axes[1, 0], detcoords=True, show=False,
+                  create_subplot=True, title="Test1", rasterized=rasterized)
+        obs.image(ax=axes[1, 1], detcoords=True, show=False,
+                  create_subplot=True, title="Test2", rasterized=rasterized)
 
-    if show is True:
-        plt.show()
+        fig.suptitle('ObsID {} | {} | {}'.format(
+            obs.obsid, obs.target, obs.detector))
+
+        if save is True:
+            pdf.savefig(fig)
+
+        # MAKE PAGE 2
+
+        fig, axes = plt.subplots(2, 2, figsize=(10, 10), sharey='row')
+
+        obs.boomerang(mask=obs.data['Hyperbola test passed'], ax=axes[0, 0], create_subplot=True,
+                      show=False, title='Legacy Hyperbola Test', cmap='magma', rasterized=rasterized)
+        obs.boomerang(ax=axes[0, 1], create_subplot=True,
+                      show=False, title='Test2', cmap='inferno', rasterized=rasterized)
+
+        obs.image(masked_x=obs.data['detx'][obs.data['Hyperbola test failed']], masked_y=obs.data['dety'][obs.data['Hyperbola test failed']], ax=axes[1, 0], detcoords=True, show=False,
+                  create_subplot=True, title="Test1", rasterized=rasterized)
+        obs.image(ax=axes[1, 1], detcoords=True, show=False,
+                  create_subplot=True, title="Test2", rasterized=rasterized)
+
+        fig.suptitle('ObsID {} | {} | {}'.format(
+            obs.obsid, obs.target, obs.detector))
+
+        if save is True:
+            pdf.savefig(fig)
+
+        if verbose is True:
+            print("Created {}".format(reportCard_savepath))
+
+        if show is True:
+            plt.show()
 
     plt.close()
 
@@ -80,6 +106,9 @@ def getArgs(argv=None):
 
     parser.add_argument('-s', '--savepath', help='Absolute PATH to location in which to save all outputs from this script, including .pdf files of plots. If not specified, this location will default to your Desktop.',
                         default=os.path.join(os.environ['HOME'], 'Desktop/HyperScreen_Results/'))
+
+    # parser.add_argument('--showplots', help='Absolute PATH to location in which to save all outputs from this script, including .pdf files of plots. If not specified, this location will default to your Desktop.',
+    #                     default=os.path.join(os.environ['HOME'], 'Desktop/HyperScreen_Results/'))
 
     parser.add_argument('-t', '--testdata', action='store_true',
                         help='Use the supplied test data as the input archive path')
