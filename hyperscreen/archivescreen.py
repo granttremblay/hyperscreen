@@ -29,6 +29,8 @@ import matplotlib.pyplot as plt
 import warnings
 warnings.filterwarnings("ignore")
 
+import gc
+
 
 def reportCard(evt1_object, hyperscreen_results_dict=None, reportCard_savepath=None, show=True, save=True, rasterized=True, dpi=150, verbose=False):  # pragma: no cover
 
@@ -56,8 +58,8 @@ def reportCard(evt1_object, hyperscreen_results_dict=None, reportCard_savepath=N
                   ax=axes[1, 1], detcoords=True, show=False,
                   create_subplot=True, title="HyperScreen", rasterized=rasterized)
 
-        fig.suptitle('ObsID {} | {} | {} \n Percent Improvement: {}%'.format(
-            obs.obsid, obs.target, obs.detector, hyperscreen_results_dict['Percent improvement']))
+        fig.suptitle('ObsID {} | {} | {} | {} ksec | {:,} counts \n Percent Improvement: {}%'.format(
+            obs.obsid, obs.target, obs.detector, round(obs.exptime/1000, 2), obs.numevents, hyperscreen_results_dict['Percent improvement']))
 
         if save is True:
             pdf.savefig(fig)
@@ -88,7 +90,10 @@ def reportCard(evt1_object, hyperscreen_results_dict=None, reportCard_savepath=N
         if show is True:
             plt.show()
 
+    fig.clf()
     plt.close()
+    del obs, hyperscreen_results_dict
+    gc.collect()
 
 
 def getArgs(argv=None):
