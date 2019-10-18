@@ -264,8 +264,8 @@ def screener(evt1file, verbose=False, savepath=None, make_reportCard=True, save_
             if os.path.exists(reportCard_savepath) and overwrite is False:
                 print("{} exists and overwrite=False. Skipping.".format(reportCard_savepath.split('/')[-1]))
             else:
-                if os.path.exists(json_savepath) and verbose is True:
-                        print("Overwriting existing {}".format(json_savepath.split('/')[-1]))
+                if os.path.exists(reportCard_savepath) and verbose is True:
+                        print("Overwriting existing {}".format(reportCard_savepath.split('/')[-1]))
                 reportCard(obs, hyperscreen_results_dict=results_dict, show=False, reportCard_savepath=reportCard_savepath)
 
                 if verbose is True:

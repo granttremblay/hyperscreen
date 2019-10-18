@@ -67,15 +67,15 @@ def test_hyperscreen_sparsetap(hrcS_evt1_sparsetap):
     assert isinstance(hyperscreen_hrcS_sparsetap, dict)
 
 
-def test_boomerang(hrcI_evt1, hrcS_evt1):
-    with assert_plot_figures_added():
-        hrcI_evt1.boomerang(
-            mask=hrcI_evt1.data['Hyperbola test failed'], show=False)
-        hrcS_evt1.boomerang(show=False)
+# def test_boomerang(hrcI_evt1, hrcS_evt1):
+#     with assert_plot_figures_added():
+#         hrcI_evt1.boomerang(
+#             mask=hrcI_evt1.data['Hyperbola test failed'], show=False)
+#         hrcS_evt1.boomerang(show=False)
 
-def test_image(hrcI_evt1, hrcS_evt1):
-    with assert_plot_figures_added():
-        masked_x = hrcI_evt1.data['detx'][hrcI_evt1.data['Hyperbola test passed']]
-        masked_y = hrcI_evt1.data['dety'][hrcI_evt1.data['Hyperbola test passed']]
-        hrcI_evt1.image(masked_x=masked_x, masked_y=masked_y, show=False)
-        hrcS_evt1.image(show=False)
+# def test_image(hrcI_evt1, hrcS_evt1):
+#     with assert_plot_figures_added():
+#         masked_x = hrcI_evt1.data['detx'][hrcI_evt1.data['Hyperbola test passed']]
+#         masked_y = hrcI_evt1.data['dety'][hrcI_evt1.data['Hyperbola test passed']]
+#         hrcI_evt1.image(masked_x=masked_x, masked_y=masked_y, show=False)
+#         hrcS_evt1.image(show=False)

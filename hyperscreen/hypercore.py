@@ -470,6 +470,7 @@ class HRCevt1:
             plt.savefig(savepath, dpi=150, bbox_inches='tight')
             print('Saved boomerang figure to: {}'.format(savepath))
 
+        plt.close()
 
     def image(self, masked_x=None, masked_y=None, xlim=None, ylim=None, detcoords=False, title=None, cmap=None, show=True, rasterized=True, savepath=None, create_subplot=False, ax=None):
         '''
@@ -540,6 +541,7 @@ class HRCevt1:
             plt.savefig('{}'.format(savepath))
             print("Saved image to {}".format(savepath))
 
+        plt.close()
 
 
 def styleplots(): # pragma: no cover
