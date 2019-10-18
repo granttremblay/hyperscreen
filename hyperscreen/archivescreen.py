@@ -274,7 +274,7 @@ def screener(evt1file, verbose=False, savepath=None, make_reportCard=True, save_
                 reportCard(obs, hyperscreen_results_dict=results_dict, show=False, reportCard_savepath=reportCard_savepath)
 
                 if verbose is True:
-                    print("Report Card generated for {} | {}, {} ksec, {} counts".format(
+                    print("Report Card generated for {} | {}, {} ksec, {:,} counts".format(
                         obs.obsid, obs.detector, round(obs.exptime/1000.,2), obs.numevents))
 
     except:
