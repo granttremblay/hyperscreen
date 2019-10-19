@@ -25,12 +25,28 @@ def getArgs(argv=None):
     return parser.parse_args(argv)
 
 
-def screenHRCevt1():
-    pass
+def screenHRCevt1(args):
 
+    
+    inputFile = args.inputFile
+
+    print(inputFile)
+    obs = hypercore.HRCevt1(inputFile)
+
+    hyperscreen_results_dict = obs.hyperscreen()
+    mask = hyperscreen_results['All Survivals (boolean mask)']
+
+    with fits.open(inputFile) as hdul:
+        hdu = hdul[1]
+        hdul.info()
+        # hdu.data = hdu.data[mask]
+        # hdu.writeto('test_clean.fits')
 
 def main():
-    pass
+
+    args = getArgs()
+
+    screenHRCevt1(args)
 
 
 if __name__ == "__main__":

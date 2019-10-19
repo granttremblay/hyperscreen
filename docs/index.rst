@@ -36,26 +36,14 @@ HyperScreen
         :target: https://pypi.python.org/pypi/sphinx_rtd_theme/
         :alt: License
 
+
+**HyperScreen** is a package implementing an improved background rejection algorithm 
+for the *Chandra* High Resolution Camera for basic data reductions
+of CCD images. It provides the essential tools for processing of CCD images
+in a framework that provides error propagation and bad pixel tracking
+throughout the reduction process.
+
 An improved background rejection algorithm for the *Chandra* High Resolution Camera (HRC)
-
-
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
-
-   readme
-   installation
-   usage
-   authors
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
 
 
 
@@ -74,16 +62,39 @@ Grant Tremblay, Ralph Kraft, Paul Nulsen, Dan Patnaude, & Alexey Vikhlinin
 
 * Free software: MIT license
 
-hypercore
-=========
+
+Getting started
+---------------
+
+.. toctree::
+   :maxdepth: 1
+
+   installation
+   usage
+   authors
 
 
-.. automodule:: hyperscreen.hypercore
-   :members:
 
-archivescreen
-=============
+Using `HyperScreen`
+-------------------
 
-.. automodule:: hyperscreen.archivescreen
-   :members:
+.. toctree::
+    :maxdepth: 2
+
+    getting_started
+
+    api
+
+
+.. toctree::
+    :maxdepth: 1
+
+    api
+
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
+
+
 
