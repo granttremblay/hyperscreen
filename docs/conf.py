@@ -46,7 +46,17 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
+
+html_theme = 'bootstrap-astropy'
+
+
+html_theme_options = {
+    'logotext1': 'HyperScreen',  # white,  semi-bold
+    'logotext2': '',  # orange, light
+    'logotext3': ':docs',   # white,  light
+    'astropy_project_menubar': True
+    }
+
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
