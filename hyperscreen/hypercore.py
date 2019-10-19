@@ -25,14 +25,22 @@ np.seterr(divide='ignore')
 
 
 class HRCevt1:
-    '''
-    A more robust HRC EVT1 file. Includes explicit
-    columns for every status bit, as well as calculated
-    columns for the f_p, f_b plane for your boomerangs.
-    Check out that cool new filtering algorithm!
-    '''
+    """This is a conceptual class representation of a Chandra High Resolution Camera (HRC) Level 1 Event File
+    
+    :return: HRCevt1 object
+    :rtype: pandas.DataFrame or astropy.table.table.Table
+    """
 
     def __init__(self, evt1file, verbose=False, as_astropy_table=False):
+        """The constructor method for the HRCevt1 class
+        
+        :param evt1file: A .fits (or fits.gz) file containing the level 1 event list. If downloaded from the Chandra database, this file always has a *evt1.fits extension. This event list includes all events telemetered.  
+        :type evt1file: .fits or .fits.gz
+        :param verbose: Set verbose=True to make the constructor chatty on the command line, defaults to False
+        :type verbose: bool, optional
+        :param as_astropy_table: Set as_astropy_table to True in order to have the HRCevt1 constructor method return an Astropy Table object, rather than a Pandas DataFrame. Defaults to False.
+        :type as_astropy_table: bool, optional
+        """
 
         # Do a standard read in of the EVT1 fits table
         self.filename = evt1file
@@ -131,25 +139,20 @@ class HRCevt1:
                 evt1file.split('/')[-1], self.obsid, self.target, self.detector, read_type))
 
     def __str__(self):
+        """This method returns the string representation of the HRCevt1 object. It is called when the print() or str() function is invoked on an HRCevt1 object.
+        
+        :return: A string describing the HRCevt1 object
+        :rtype: str
+        """
         return "HRC EVT1 object with {} events. Data is packaged as a Pandas Dataframe (or an Astropy Table if as_astropy_table=True on initialization.)".format(self.numevents)
 
     def calculate_fp_fb(self):
-        '''
-        Calculate the Fine Position (fp) and normalized central tap
-        amplitude (fb) for the HRC U- and V- axes.
+        """Method to calculate the Fine Position (f_p) and normalized central tap amplitude (fb) for the HRC U- and V- axes.
+        
+        :return: fp_u, fb_u, fp_v, fb_v; the calculated fine positions and normalized central tap amplitudes, respectively, for the HRC U- and V- axes of the I or S detector
+        :rtype: float
+        """
 
-        Parameters
-        ----------
-        data : Astropy Table
-            Table object made from an HRC evt1 event list. Must include the
-            au1, au2, au3 and av1, av2, av3 columns.
-
-        Returns
-        -------
-        fp_u, fb_u, fp_v, fb_v: float
-            Calculated fine positions and normalized central tap amplitudes
-            for the HRC U- and V- axes
-        '''
         a_u = self.data["au1"]  # otherwise known as "a1"
         b_u = self.data["au2"]  # "a2"
         c_u = self.data["au3"]  # "a3"
