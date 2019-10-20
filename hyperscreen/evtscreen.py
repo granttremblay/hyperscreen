@@ -34,7 +34,6 @@ def getArgs(argv=None):
 
 def screenHRCevt1(input_fits_file, hyperscreen_results_dict=None, verbose=True):
 
-    
     # Get the root string to use as our naming convention
     file_name = input_fits_file.split('/')[-1] # Split off the path
     file_root = file_name.split('.fits')[0] # Split off the .fits (or .fits.gz)
@@ -86,7 +85,6 @@ def main():
     args = getArgs()
 
     screenHRCevt1(args.input_fits_file, verbose=True)
-
 
 if __name__ == "__main__":
 
