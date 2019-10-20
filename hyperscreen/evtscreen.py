@@ -23,8 +23,13 @@ def getArgs(argv=None):
 
     parser.add_argument('input_fits_file', nargs='?')
 
+    parser.add_argument('-c', '--comparison_products', action='store_true',
+                        help='Make additional HyperScreen result images (rejected events & difference map)')
+
     parser.add_argument('-v', '--verbose', action='store_true',
                         help='Make HyperScreen chatty on stdout.')
+
+    
     
     # parser.add_argument('-b', '--backup_dir', help='Absolute PATH to backup of EVT1 Files',
     #                     default=None)
@@ -32,7 +37,7 @@ def getArgs(argv=None):
     return parser.parse_args(argv)
 
 
-def screenHRCevt1(input_fits_file, hyperscreen_results_dict=None, verbose=True):
+def screenHRCevt1(input_fits_file, hyperscreen_results_dict=None, comparison_products=False, verbose=True):
 
     # Get the root string to use as our naming convention
     file_name = input_fits_file.split('/')[-1] # Split off the path
@@ -52,12 +57,13 @@ def screenHRCevt1(input_fits_file, hyperscreen_results_dict=None, verbose=True):
 
     if hyperscreen_results_dict is None:
         # Then you need to make it! 
+        if verbose is True:
+            print("Applying HyperScreen algorithm to {}".format(file_name))
         obs = hypercore.HRCevt1(input_fits_file)
         hyperscreen_results = obs.hyperscreen()
     else:
         hyperscreen_results = hyperscreen_results_dict
     
-    mask = hyperscreen_results['All Survivals (boolean mask)']
 
 
     # if not os.path.exists(backup_dir):
@@ -70,21 +76,32 @@ def screenHRCevt1(input_fits_file, hyperscreen_results_dict=None, verbose=True):
     #     print("Backing up (copying) input fits file {} to {}".format(input_fits_file.split('/')[-1], backup_dir))
 
     hyperscreen_fits_file = file_path + '/hyperscreen_' + file_name
+    rejected_events_file = file_path + '/hyperscreen_REJECTED_EVENTS_' + file_name
+    difference_map_file = file_path + '/hyperscreen_DIFFERENCE_MAP_' + file_name
+
+    survival_mask = hyperscreen_results['All Survivals (boolean mask)']
+    failure_mask = hyperscreen_results['All Failures (boolean mask)']
 
     with fits.open(input_fits_file) as hdul:
-        hdul[1].data = hdul[1].data[mask]
+        original_data = hdul[1].data
+        hdul[1].data = hdul[1].data[survival_mask]
         if verbose is True:
             print("Masking data with HyperScreen Results")
         hdul.writeto(hyperscreen_fits_file, overwrite=True)
         if verbose is True:
             print("Wrote {}".format(hyperscreen_fits_file))
+        if comparison_products is True:
+            hdul[1].data = original_data[failure_mask]
+            hdul.writeto(rejected_events_file, overwrite=True)
+            if verbose is True:
+                print("Wrote Rejected Events Map {}".format(rejected_events_file))
 
 
 def main():
 
     args = getArgs()
 
-    screenHRCevt1(args.input_fits_file, verbose=True)
+    screenHRCevt1(args.input_fits_file, verbose=True, comparison_products=args.comparison_products)
 
 if __name__ == "__main__":
 
