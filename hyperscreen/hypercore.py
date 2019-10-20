@@ -256,7 +256,7 @@ class HRCevt1:
                 tap)] = pass_fb_v.index.values
 
         # Done looping over taps
-
+        
         u_all_survivals = np.concatenate(
             [x for x in u_axis_survivals.values()])
         v_all_survivals = np.concatenate(
