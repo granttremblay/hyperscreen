@@ -6,7 +6,8 @@
 from __future__ import division
 from __future__ import print_function
 
-from hyperscreen import hypercore
+
+
 import os
 import sys
 import time
@@ -30,6 +31,9 @@ import warnings
 warnings.filterwarnings("ignore")
 
 import gc
+
+from hyperscreen import hypercore
+from hyperscreen import evtscreen
 
 
 def reportCard(evt1_object, hyperscreen_results_dict=None, reportCard_savepath=None, show=True, save=True, rasterized=True, dpi=150, verbose=False):  # pragma: no cover
@@ -105,7 +109,8 @@ def getArgs(argv=None):
 
     parser.add_argument('-c', '--cluster', action='store_true',
                         help='Point to the HRC Database stored on the Smithsonian Hydra Cluster')
-
+    parser.add_argument('-f', '--fitsfiles', action='store_true',
+                        help='Create FITS files of hyperscreen results? Default=False')
 
     parser.add_argument('-j', '--save_json', help='Save JSON files for every Hyperscreen result dictionary?',
                         action='store_true')
@@ -216,7 +221,7 @@ def inventoryArchive(archivepath, limit=None, verbose=False, sort=False):
         return master_list
 
 
-def screener(evt1file, verbose=False, savepath=None, make_reportCard=True, save_json=True, show=False, overwrite=False):  # pragma: no cover
+def screener(evt1file, verbose=False, savepath=None, make_reportCard=True, make_fitsfiles=False, save_json=True, show=False, overwrite=False):  # pragma: no cover
 
     obs = hypercore.HRCevt1(evt1file)
 
@@ -276,6 +281,9 @@ def screener(evt1file, verbose=False, savepath=None, make_reportCard=True, save_
                 if verbose is True:
                     print("Report Card generated for {} | {}, {} ksec, {:,} counts".format(
                         obs.obsid, obs.detector, round(obs.exptime/1000.,2), obs.numevents))
+        
+        if make_fitsfiles is True:
+            evtscreen.screenHRCevt1(obs, hyperscreen_results_dict=results_dict, comparison_products=True, verbose=True)
 
     except:
         print("ERROR on {} ({} | {} ksec | {:,} events | {:,} good time events), pressing on".format(
@@ -285,7 +293,7 @@ def screener(evt1file, verbose=False, savepath=None, make_reportCard=True, save_
 
 
 
-def screenArchive(evt1_file_list, savepath=None, verbose=False, make_reportCard=True, save_json=True, show=False, singlecore=False, overwrite=False):  # pragma: no cover
+def screenArchive(evt1_file_list, savepath=None, verbose=False, make_reportCard=True, make_fitsfiles=False, save_json=True, show=False, singlecore=False, overwrite=False):  # pragma: no cover
 
     if singlecore is False:
         p = multiprocessing.Pool()
@@ -294,7 +302,8 @@ def screenArchive(evt1_file_list, savepath=None, verbose=False, make_reportCard=
         kwargs = {'verbose': verbose,  # be chatty
                 # save the products, like report cards and hyperscreen results list-'o-dicts
                 'savepath': savepath,
-                'make_reportCard': make_reportCard,  # make report cards?
+                'make_reportCard': make_reportCard, # make report cards?
+                'make_fitsfiles': make_fitsfiles, # make FITS files? 
                 'show': show,
                 'overwrite': overwrite}  # show these? *** DEFINITELY a bad idea if you're screening more than 10 evt1 files! ***
 
@@ -343,7 +352,7 @@ def main():  # pragma: no cover
         archivepath, limit=None, verbose=args.verbose, sort=False)
 
 
-    screenArchive(evt1_files, savepath=savepath, verbose=args.verbose, make_reportCard=args.reportcard, save_json=args.save_json, show=args.showplots, singlecore=args.singlecore, overwrite=args.overwrite)
+    screenArchive(evt1_files, savepath=savepath, verbose=args.verbose, make_reportCard=args.reportcard, make_fitsfiles=args.fitsfiles, save_json=args.save_json, show=args.showplots, singlecore=args.singlecore, overwrite=args.overwrite)
 
     # improvement=[]
     # exptime=[]
