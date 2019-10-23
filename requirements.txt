@@ -8,4 +8,4 @@ astropy==2.0.9; python_version < '3.0'
 matplotlib==3.1.0; python_version >= '3.0'
 matplotlib==2.2.3; python_version < '3.0'
 astropy_sphinx_theme==1.1 # pyup: ignore
-skimage==0.15.0
+scikit-image==0.14.2
