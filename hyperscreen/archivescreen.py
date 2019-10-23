@@ -134,7 +134,6 @@ def getArgs(argv=None):
     parser.add_argument('-w', '--windowstest', action='store_true',
                         help='Point to my Windows database')
 
-
     parser.add_argument('--showplots', action='store_true',  help='Show the plots on screen while running? This is a bad idea if you are screening more than few observations')
 
     parser.add_argument('--singlecore', action='store_true',  help='Disable multiprocessing and run archivescreen on a single core? Defaults to False.')

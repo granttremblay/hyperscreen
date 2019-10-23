@@ -29,8 +29,6 @@ def getArgs(argv=None):
     parser.add_argument('-v', '--verbose', action='store_true',
                         help='Make HyperScreen chatty on stdout.')
 
-    
-    
     # parser.add_argument('-b', '--backup_dir', help='Absolute PATH to backup of EVT1 Files',
     #                     default=None)
 
@@ -40,13 +38,15 @@ def getArgs(argv=None):
 def screenHRCevt1(input_fits_file, hyperscreen_results_dict=None, comparison_products=False, savepath='./', verbose=True):
 
     # Get the root string to use as our naming convention
-    file_name = input_fits_file.split('/')[-1] # Split off the path
-    file_root = file_name.split('.fits')[0] # Split off the .fits (or .fits.gz)
+    file_name = input_fits_file.split('/')[-1]  # Split off the path
+    # Split off the .fits (or .fits.gz)
+    file_root = file_name.split('.fits')[0]
     file_path = os.path.realpath(os.path.dirname(input_fits_file))
 
     # Check if the passed input file is a string ending with .fits or .fits.gz
     if isinstance(input_fits_file, str):
-        filetype_match = input_fits_file.split('.')[-1] == 'fits' or input_fits_file.split('.')[-1] == 'gz'
+        filetype_match = input_fits_file.split(
+            '.')[-1] == 'fits' or input_fits_file.split('.')[-1] == 'gz'
 
         # if filetype_match is True:
         #     if verbose is True:
@@ -54,23 +54,20 @@ def screenHRCevt1(input_fits_file, hyperscreen_results_dict=None, comparison_pro
         # else:
         #     raise Exception('ERROR: Input given ({}) is not recognized as a .fits[.gz] or HRCevt1 object.'.format(input_fits_file))
 
-
     if hyperscreen_results_dict is None:
-        # Then you need to make it! 
+        # Then you need to make it!
         if verbose is True:
             print("Applying HyperScreen algorithm to {}".format(file_name))
         obs = hypercore.HRCevt1(input_fits_file)
         hyperscreen_results = obs.hyperscreen()
     else:
         hyperscreen_results = hyperscreen_results_dict
-    
-
 
     # if not os.path.exists(backup_dir):
     #     os.makedirs(backup_dir)
     #     if verbose is True:
     #         print("Made backup directory {}".format(backup_dir))
-    
+
     # copyfile(input_fits_file, backup_dir + file_root + '_ORIGINAL')
     # if verbose is True:
     #     print("Backing up (copying) input fits file {} to {}".format(input_fits_file.split('/')[-1], backup_dir))
@@ -101,7 +98,9 @@ def main():
 
     args = getArgs()
 
-    screenHRCevt1(args.input_fits_file, verbose=True, comparison_products=args.comparison_products)
+    screenHRCevt1(args.input_fits_file, verbose=True,
+                  comparison_products=args.comparison_products)
+
 
 if __name__ == "__main__":
 
