@@ -37,7 +37,7 @@ def getArgs(argv=None):
     return parser.parse_args(argv)
 
 
-def screenHRCevt1(input_fits_file, hyperscreen_results_dict=None, comparison_products=False, verbose=True):
+def screenHRCevt1(input_fits_file, hyperscreen_results_dict=None, comparison_products=False, savepath='./', verbose=True):
 
     # Get the root string to use as our naming convention
     file_name = input_fits_file.split('/')[-1] # Split off the path
@@ -48,11 +48,11 @@ def screenHRCevt1(input_fits_file, hyperscreen_results_dict=None, comparison_pro
     if isinstance(input_fits_file, str):
         filetype_match = input_fits_file.split('.')[-1] == 'fits' or input_fits_file.split('.')[-1] == 'gz'
 
-        if filetype_match is True:
-            if verbose is True:
-                print("Input file is a .fits[.gz] file. Reading as such.")
-        else:
-            raise Exception('ERROR: Input given ({}) is not recognized as a .fits[.gz] or HRCevt1 object.'.format(input_fits_file))
+        # if filetype_match is True:
+        #     if verbose is True:
+        #         print("Input file is a .fits[.gz] file. Reading as such.")
+        # else:
+        #     raise Exception('ERROR: Input given ({}) is not recognized as a .fits[.gz] or HRCevt1 object.'.format(input_fits_file))
 
 
     if hyperscreen_results_dict is None:

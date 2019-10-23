@@ -109,6 +109,7 @@ def getArgs(argv=None):
 
     parser.add_argument('-c', '--cluster', action='store_true',
                         help='Point to the HRC Database stored on the Smithsonian Hydra Cluster')
+
     parser.add_argument('-f', '--fitsfiles', action='store_true',
                         help='Create FITS files of hyperscreen results? Default=False')
 
@@ -283,11 +284,11 @@ def screener(evt1file, verbose=False, savepath=None, make_reportCard=True, make_
                         obs.obsid, obs.detector, round(obs.exptime/1000.,2), obs.numevents))
         
         if make_fitsfiles is True:
-            evtscreen.screenHRCevt1(obs, hyperscreen_results_dict=results_dict, comparison_products=True, verbose=True)
+            evtscreen.screenHRCevt1(evt1file, hyperscreen_results_dict=results_dict, comparison_products=True, verbose=True)
 
     except:
         print("ERROR on {} ({} | {} ksec | {:,} events | {:,} good time events), pressing on".format(
-            obs.obsid, obs.detector, round(obs.exptime/1000, 2), obs.numevents, obs.goodtimeevents))
+                obs.obsid, obs.detector, round(obs.exptime/1000, 2), obs.numevents, obs.goodtimeevents))
 
 
 

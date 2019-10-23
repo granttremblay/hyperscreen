@@ -19,6 +19,13 @@ from matplotlib.colors import LogNorm
 from astropy.io import fits
 from astropy.table import Table
 
+
+import skimage.data as data
+import skimage.segmentation as seg
+import skimage.filters as filters
+import skimage.draw as draw
+import skimage.color as color
+
 import pandas as pd
 import numpy as np
 np.seterr(divide='ignore')
@@ -173,20 +180,36 @@ class HRCevt1:
         return fp_u, fb_u, fp_v, fb_v
 
     def threshold(self, img, bins):
-        nozero_img = img.copy()
-        nozero_img[img == 0] = np.nan
+    #     nozero_img = img.copy()
+    #     nozero_img[img == 0] = np.nan
 
-        # This is a really stupid way to threshold
-        median = np.nanmedian(nozero_img)
-        thresh = median * 5
+    #     # This is a really stupid way to threshold
+    #     median = np.nanmedian(nozero_img)
+    #     thresh = median * 5
 
-        thresh_img = nozero_img
+    #     thresh_img = nozero_img
+    #     # "If you don't ignore the warning, you'll get a warning" ~~ G. Tremblay
+    #     with np.errstate(invalid='ignore'):
+    #         thresh_img[thresh_img < thresh] = np.nan
+    #     thresh_img[:int(bins[1] / 2), :] = np.nan
+    # #     thresh_img[:,int(bins[1]-5):] = np.nan
+    #     return thresh_img
+
+        # trying Otsu's method
+
+        thresh_img = img.copy()
+        thresh_img[img == 0] = np.nan
+        
+        thresh = filters.threshold_otsu(img)
+
         # "If you don't ignore the warning, you'll get a warning" ~~ G. Tremblay
         with np.errstate(invalid='ignore'):
             thresh_img[thresh_img < thresh] = np.nan
         thresh_img[:int(bins[1] / 2), :] = np.nan
     #     thresh_img[:,int(bins[1]-5):] = np.nan
         return thresh_img
+
+
 
     def hyperscreen(self):
         '''
