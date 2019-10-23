@@ -33,14 +33,14 @@ np.seterr(divide='ignore')
 
 class HRCevt1:
     """This is a conceptual class representation of a Chandra High Resolution Camera (HRC) Level 1 Event File
-    
+
     :return: HRCevt1 object
     :rtype: pandas.DataFrame or astropy.table.table.Table
     """
 
     def __init__(self, evt1file, verbose=False, as_astropy_table=False):
         """The constructor method for the HRCevt1 class
-        
+
         :param evt1file: A .fits (or fits.gz) file containing the level 1 event list. If downloaded from the Chandra database, this file always has a *evt1.fits extension. This event list includes all events telemetered.  
         :type evt1file: .fits or .fits.gz
         :param verbose: Set verbose=True to make the constructor chatty on the command line, defaults to False
@@ -147,7 +147,7 @@ class HRCevt1:
 
     def __str__(self):
         """This method returns the string representation of the HRCevt1 object. It is called when the print() or str() function is invoked on an HRCevt1 object.
-        
+
         :return: A string describing the HRCevt1 object
         :rtype: str
         """
@@ -155,7 +155,7 @@ class HRCevt1:
 
     def calculate_fp_fb(self):
         """Method to calculate the Fine Position (f_p) and normalized central tap amplitude (fb) for the HRC U- and V- axes.
-        
+
         :return: fp_u, fb_u, fp_v, fb_v; the calculated fine positions and normalized central tap amplitudes, respectively, for the HRC U- and V- axes of the I or S detector
         :rtype: float
         """
@@ -179,50 +179,54 @@ class HRCevt1:
 
         return fp_u, fb_u, fp_v, fb_v
 
-    def threshold(self, img, bins):
-    #     nozero_img = img.copy()
-    #     nozero_img[img == 0] = np.nan
+    def threshold(self, img, bins, softening=None):
+        """HyperScreen (a) separates events by both axis and tap, (b) creates an 
+        image (a 2D histogram, with bin sizes dependent on the total number of counts 
+        in the observation), then (c) performs efficient image segmentation on that image 
+        by applying Otsu's Method (https://en.wikipedia.org/wiki/Otsu%27s_method) to 
+        create a bespoke threshold for each tap image. This efficiently separates the 'boomerang' 
+        locus for 'real' events with the 'everything else' region for background events. This function 
+        performs operation (c). 
 
-    #     # This is a really stupid way to threshold
-    #     median = np.nanmedian(nozero_img)
-    #     thresh = median * 5
-
-    #     thresh_img = nozero_img
-    #     # "If you don't ignore the warning, you'll get a warning" ~~ G. Tremblay
-    #     with np.errstate(invalid='ignore'):
-    #         thresh_img[thresh_img < thresh] = np.nan
-    #     thresh_img[:int(bins[1] / 2), :] = np.nan
-    # #     thresh_img[:,int(bins[1]-5):] = np.nan
-    #     return thresh_img
-
-        # trying Otsu's method
+        Arguments:
+            img {[type]} -- [description]
+            bins {[type]} -- [description]
+        """
 
         thresh_img = img.copy()
         thresh_img[img == 0] = np.nan
-        
-        thresh = filters.threshold_otsu(img)
+
+        if softening is None:
+            thresh = filters.threshold_otsu(img)
+        elif isinstance(softening, float):
+            otsu_thresh = filters.threshold_otsu(img)
+            thresh = otsu_thresh - (otsu_thresh * softening)
 
         # "If you don't ignore the warning, you'll get a warning" ~~ G. Tremblay
         with np.errstate(invalid='ignore'):
             thresh_img[thresh_img < thresh] = np.nan
         thresh_img[:int(bins[1] / 2), :] = np.nan
     #     thresh_img[:,int(bins[1]-5):] = np.nan
+
         return thresh_img
 
+    def hyperscreen(self, softening=0.2):
+        """[summary]
 
+        Returns:
+            [type] -- [description]
+        """
 
-    def hyperscreen(self):
-        '''
-        Grant Tremblay's new algorithm. Screens events on a tap-by-tap basis.
-        '''
-
-        data = self.data
+        data = self.data[self.data['Hyperbola test passed']]
 
         #taprange = range(data['crsu'].min(), data['crsu'].max() + 1)
         taprange_u = range(data['crsu'].min() - 1, data['crsu'].max() + 1)
         taprange_v = range(data['crsv'].min() - 1, data['crsv'].max() + 1)
 
-        bins = [200, 200]  # number of bins
+        if self.numevents < 100000:
+            bins = [50, 50]  # number of bins
+        else:
+            bins = [200, 200]
 
         # Instantiate these empty dictionaries to hold our results
         u_axis_survivals = {}
@@ -237,7 +241,8 @@ class HRCevt1:
 
             hist_u, xbounds_u, ybounds_u = np.histogram2d(
                 data['fb_u'][tapmask_u][keep_u], data['fp_u'][tapmask_u][keep_u], bins=bins)
-            thresh_hist_u = self.threshold(hist_u, bins=bins)
+            thresh_hist_u = self.threshold(
+                hist_u, bins=bins, softening=softening)
 
             posx_u = np.digitize(data['fb_u'][tapmask_u], xbounds_u)
             posy_u = np.digitize(data['fp_u'][tapmask_u], ybounds_u)
@@ -262,7 +267,8 @@ class HRCevt1:
 
             hist_v, xbounds_v, ybounds_v = np.histogram2d(
                 data['fb_v'][tapmask_v][keep_v], data['fp_v'][tapmask_v][keep_v], bins=bins)
-            thresh_hist_v = self.threshold(hist_v, bins=bins)
+            thresh_hist_v = self.threshold(
+                hist_v, bins=bins, softening=softening)
 
             posx_v = np.digitize(data['fb_v'][tapmask_v], xbounds_v)
             posy_v = np.digitize(data['fp_v'][tapmask_v], ybounds_v)
@@ -279,7 +285,7 @@ class HRCevt1:
                 tap)] = pass_fb_v.index.values
 
         # Done looping over taps
-        
+
         u_all_survivals = np.concatenate(
             [x for x in u_axis_survivals.values()])
         v_all_survivals = np.concatenate(
@@ -301,8 +307,6 @@ class HRCevt1:
             print("WARNING: Total Number of survivals and failures does \
             not equal total events in the EVT1 file. Something is wrong!")
 
-        legacy_hyperbola_test_survivals = sum(
-            self.data['Hyperbola test passed'])
         legacy_hyperbola_test_failures = sum(
             self.data['Hyperbola test failed'])
         percent_legacy_hyperbola_test_rejected = round(
@@ -332,16 +336,32 @@ class HRCevt1:
         return hyperscreen_results_dict
 
     def hyperbola(self, fb, a, b, h):
-        '''Given the normalized central tap amplitude, a, b, and h,
-        return an array of length len(fb) that gives a hyperbola.'''
+        """Given the normalized central tap amplitude, a, b, and h,
+        return an array of length len(fb) that gives a hyperbola.
+
+        Arguments:
+            fb {[type]} -- [description]
+            a {[type]} -- [description]
+            b {[type]} -- [description]
+            h {[type]} -- [description]
+
+        Returns:
+            [type] -- [description]
+        """
+
         hyperbola = b * np.sqrt(((fb - h)**2 / a**2) - 1)
 
         return hyperbola
 
     def legacy_hyperbola_test(self, tolerance=0.035):
-        '''
-        Apply the hyperbolic test.
-        '''
+        """[summary]
+
+        Keyword Arguments:
+            tolerance {float} -- [description] (default: {0.035})
+
+        Returns:
+            [type] -- [description]
+        """
 
         # Remind the user what tolerance they're using
         # print("{0: <25}| Using tolerance = {1}".format(" ", tolerance))
@@ -431,7 +451,8 @@ class HRCevt1:
         return hyperzones, hypermasks
 
     def boomerang(self, mask=None, show=True, plot_legacy_zone=True, title=None, cmap=None, savepath=None, create_subplot=False, ax=None, rasterized=True):
-
+        """[summary]
+        """
         # You can plot the image on axes of a subplot by passing
         # that axis to this function. Here are some switches to enable that.
 
@@ -499,10 +520,23 @@ class HRCevt1:
         plt.close()
 
     def image(self, masked_x=None, masked_y=None, xlim=None, ylim=None, detcoords=False, title=None, cmap=None, show=True, rasterized=True, savepath=None, create_subplot=False, ax=None):
-        '''
-        Create a quicklook image, in detector or sky coordinates, of the 
+        """Create a quicklook image, in detector or sky coordinates, of the 
         observation. The image will be binned to 400x400. 
-        '''
+
+        Keyword Arguments:
+            masked_x {[type]} -- [description] (default: {None})
+            masked_y {[type]} -- [description] (default: {None})
+            xlim {[type]} -- [description] (default: {None})
+            ylim {[type]} -- [description] (default: {None})
+            detcoords {bool} -- [description] (default: {False})
+            title {[type]} -- [description] (default: {None})
+            cmap {[type]} -- [description] (default: {None})
+            show {bool} -- [description] (default: {True})
+            rasterized {bool} -- [description] (default: {True})
+            savepath {[type]} -- [description] (default: {None})
+            create_subplot {bool} -- [description] (default: {False})
+            ax {[type]} -- [description] (default: {None})
+        """
 
         # Create the 2D histogram
         nbins = (400, 400)
@@ -570,7 +604,9 @@ class HRCevt1:
         plt.close()
 
 
-def styleplots(): # pragma: no cover
+def styleplots():  # pragma: no cover
+    """Make the plots pretty. 
+    """
 
     mpl.rcParams['agg.path.chunksize'] = 10000
 
@@ -584,4 +620,3 @@ def styleplots(): # pragma: no cover
     plt.rcParams['axes.labelsize'] = labelsizes
     plt.rcParams['xtick.labelsize'] = labelsizes
     plt.rcParams['ytick.labelsize'] = labelsizes
-

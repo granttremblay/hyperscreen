@@ -91,8 +91,8 @@ def reportCard(evt1_object, hyperscreen_results_dict=None, reportCard_savepath=N
         if verbose is True:
             print("Created {}".format(reportCard_savepath))
 
-        if show is True:
-            plt.show()
+    if show is True:
+        plt.show()
 
     fig.clf()
     plt.close()
@@ -276,7 +276,7 @@ def screener(evt1file, verbose=False, savepath=None, make_reportCard=True, make_
             else:
                 if os.path.exists(reportCard_savepath) and verbose is True:
                         print("Overwriting existing {}".format(reportCard_savepath.split('/')[-1]))
-                reportCard(obs, hyperscreen_results_dict=results_dict, show=False, reportCard_savepath=reportCard_savepath)
+                reportCard(obs, hyperscreen_results_dict=results_dict, show=show, reportCard_savepath=reportCard_savepath)
 
                 if verbose is True:
                     print("Report Card generated for {} | {}, {} ksec, {:,} counts".format(
@@ -294,6 +294,11 @@ def screener(evt1file, verbose=False, savepath=None, make_reportCard=True, make_
 
 
 def screenArchive(evt1_file_list, savepath=None, verbose=False, make_reportCard=True, make_fitsfiles=False, save_json=True, show=False, singlecore=False, overwrite=False):  # pragma: no cover
+    """[summary]
+    
+    Raises:
+        Exception: [description]
+    """
 
     if singlecore is False:
         p = multiprocessing.Pool()
@@ -343,7 +348,8 @@ def screenArchive(evt1_file_list, savepath=None, verbose=False, make_reportCard=
 
 
 def main():  # pragma: no cover
-    """Console script for hyperscreen."""
+    """[summary]
+    """
 
     args = getArgs()
 
