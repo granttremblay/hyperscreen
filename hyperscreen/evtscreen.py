@@ -50,6 +50,11 @@ def screenHRCevt1(input_fits_file, hyperscreen_results_dict=None, comparison_pro
     backup_dir = os.path.join(
         savepath, '{}_hyperscreen_report'.format(obsid))
 
+    if not os.path.exists(backup_dir):
+        os.makedirs(backup_dir)
+        if verbose is True:
+            print("Made HyperScreen Products Directory {}".format(backup_dir))
+
     # Check if the passed input file is a string ending with .fits or .fits.gz
     if isinstance(input_fits_file, str):
         filetype_match = input_fits_file.split(
