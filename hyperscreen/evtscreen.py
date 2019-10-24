@@ -35,24 +35,29 @@ def getArgs(argv=None):
     return parser.parse_args(argv)
 
 
-def screenHRCevt1(input_fits_file, hyperscreen_results_dict=None, comparison_products=False, savepath='./', verbose=True):
+def screenHRCevt1(input_fits_file, hyperscreen_results_dict=None, comparison_products=True, savepath=None, verbose=True, backup=True):
+
+    obsid = fits.getheader(input_fits_file)['OBS_ID']
 
     # Get the root string to use as our naming convention
     file_name = input_fits_file.split('/')[-1]  # Split off the path
     # Split off the .fits (or .fits.gz)
-    file_root = file_name.split('.fits')[0]
+    file_root = file_name.split('.fits')[0].split('_')[0]
     file_path = os.path.realpath(os.path.dirname(input_fits_file))
+    print(file_path)
+    if savepath is None:
+        savepath = file_path
+    backup_dir = os.path.join(
+        savepath, '{}_hyperscreen_report'.format(obsid))
 
     # Check if the passed input file is a string ending with .fits or .fits.gz
     if isinstance(input_fits_file, str):
         filetype_match = input_fits_file.split(
             '.')[-1] == 'fits' or input_fits_file.split('.')[-1] == 'gz'
 
-        # if filetype_match is True:
-        #     if verbose is True:
-        #         print("Input file is a .fits[.gz] file. Reading as such.")
-        # else:
-        #     raise Exception('ERROR: Input given ({}) is not recognized as a .fits[.gz] or HRCevt1 object.'.format(input_fits_file))
+        if filetype_match is False:
+            raise Exception(
+                'ERROR: Input given ({}) is not recognized as a .fits[.gz] or HRCevt1 object.'.format(input_fits_file))
 
     if hyperscreen_results_dict is None:
         # Then you need to make it!
@@ -63,18 +68,24 @@ def screenHRCevt1(input_fits_file, hyperscreen_results_dict=None, comparison_pro
     else:
         hyperscreen_results = hyperscreen_results_dict
 
-    # if not os.path.exists(backup_dir):
-    #     os.makedirs(backup_dir)
+    # if backup is True:
+    #     if not os.path.exists(backup_dir):
+    #         os.makedirs(backup_dir)
+    #         if verbose is True:
+    #             print("Made backup directory {}".format(backup_dir))
+
     #     if verbose is True:
-    #         print("Made backup directory {}".format(backup_dir))
+    #         print("Backing up (copying) input fits file {} to {}".format(
+    #             input_fits_file.split('/')[-1], backup_dir))
+    #     copyfile(input_fits_file, os.path.join(
+    #         file_path, '{}_original_event_list.fits'.format(obsid)))
 
-    # copyfile(input_fits_file, backup_dir + file_root + '_ORIGINAL')
-    # if verbose is True:
-    #     print("Backing up (copying) input fits file {} to {}".format(input_fits_file.split('/')[-1], backup_dir))
+    # hyperscreen_fits_file = file_path + '/hyperscreen_' + file_name
+    hyperscreen_fits_file = os.path.join(file_path, 'hyperscreen_' + file_name)
 
-    hyperscreen_fits_file = file_path + '/hyperscreen_' + file_name
-    rejected_events_file = file_path + '/hyperscreen_REJECTED_EVENTS_' + file_name
-    difference_map_file = file_path + '/hyperscreen_DIFFERENCE_MAP_' + file_name
+    rejected_events_file = os.path.join(
+        backup_dir, '{}_hyperscreen_rejected_events.fits'.format(obsid))
+    # difference_map_file = file_path + '/hyperscreen_DIFFERENCE_MAP_' + file_name
 
     survival_mask = hyperscreen_results['All Survivals (boolean mask)']
     failure_mask = hyperscreen_results['All Failures (boolean mask)']
@@ -85,13 +96,21 @@ def screenHRCevt1(input_fits_file, hyperscreen_results_dict=None, comparison_pro
         if verbose is True:
             print("Masking data with HyperScreen Results")
         hdul.writeto(hyperscreen_fits_file, overwrite=True)
+
         if verbose is True:
-            print("Wrote {}".format(hyperscreen_fits_file))
+            print(
+                "Wrote new HyperScreen-filtered evt1 file to {}".format(hyperscreen_fits_file))
+
         if comparison_products is True:
             hdul[1].data = original_data[failure_mask]
             hdul.writeto(rejected_events_file, overwrite=True)
             if verbose is True:
                 print("Wrote Rejected Events Map {}".format(rejected_events_file))
+
+    original_evt1_file_path = os.path.join(
+        file_path, '{}_original_event_list.fits'.format(obsid))
+    os.rename(input_fits_file, original_evt1_file_path)
+    print("Backed up original evt1 file to {}".format(original_evt1_file_path))
 
 
 def main():

@@ -239,59 +239,60 @@ def screener(evt1file, verbose=False, savepath=None, make_reportCard=True, make_
     #         print("Report Card generated for {} | {}, {} ksec, {} counts".format(
     #             obs.obsid, obs.detector, round(obs.exptime/1000.,2), obs.numevents))
 
-    #try:
-    results_dict = obs.hyperscreen()
+    try:
+        results_dict = obs.hyperscreen()
 
-    if save_json is True:
-        json_savepath = os.path.join(savepath, '{}_{}_{}_hyperResults.json'.format(obs.obsid, obs.target.replace(' ', '_'), obs.detector))
+        if save_json is True:
+            json_savepath = os.path.join(savepath, '{}_{}_{}_hyperResults.json'.format(obs.obsid, obs.target.replace(' ', '_'), obs.detector))
 
-        if os.path.exists(json_savepath) and overwrite is False:
-            print("{} exists and overwrite=False. Skipping.".format(json_savepath.split('/')[-1]))
+            if os.path.exists(json_savepath) and overwrite is False:
+                print("{} exists and overwrite=False. Skipping.".format(json_savepath.split('/')[-1]))
 
-        else:
-            if os.path.exists(json_savepath) and verbose is True:
-                print("Overwriting existing {}".format(json_savepath.split('/')[-1]))
-            # We don't want JSONify the full results dictionary (which includes embedded dictionaries!)
-            json_reduced_results_dict = {"ObsID": results_dict['ObsID'],
-                                            "Target": results_dict['Target'],
-                                            "Exposure Time": results_dict['Exposure Time'],
-                                            "Detector": results_dict['Detector'],
-                                            "Number of Events": results_dict['Number of Events'],
-                                            "Number of Good Time Events": results_dict['Number of Good Time Events'],
-                                            "All Survivals (event indices)": results_dict['All Survivals (event indices)'].tolist(), # YOU CAN'T JSONIFY AN NDARRAY. MUST MAKE IT A LIST!
-                                            "All Survivals (boolean mask)": results_dict['All Survivals (boolean mask)'].tolist(),
-                                            "All Failures (boolean mask)": results_dict['All Failures (boolean mask)'].tolist(),
-                                            "Percent rejected by Tapscreen": results_dict['Percent rejected by Tapscreen'],
-                                            "Percent rejected by Hyperbola": results_dict['Percent rejected by Hyperbola'],
-                                            "Percent improvement": results_dict['Percent improvement']
-                                            }
+            else:
+                if os.path.exists(json_savepath) and verbose is True:
+                    print("Overwriting existing {}".format(json_savepath.split('/')[-1]))
+                # We don't want JSONify the full results dictionary (which includes embedded dictionaries!)
+                json_reduced_results_dict = {"ObsID": results_dict['ObsID'],
+                                                "Target": results_dict['Target'],
+                                                "Exposure Time": results_dict['Exposure Time'],
+                                                "Detector": results_dict['Detector'],
+                                                "Number of Events": results_dict['Number of Events'],
+                                                "Number of Good Time Events": results_dict['Number of Good Time Events'],
+                                                "All Survivals (event indices)": results_dict['All Survivals (event indices)'].tolist(), # YOU CAN'T JSONIFY AN NDARRAY. MUST MAKE IT A LIST!
+                                                "All Survivals (boolean mask)": results_dict['All Survivals (boolean mask)'].tolist(),
+                                                "All Failures (boolean mask)": results_dict['All Failures (boolean mask)'].tolist(),
+                                                "Percent rejected by Tapscreen": results_dict['Percent rejected by Tapscreen'],
+                                                "Percent rejected by Hyperbola": results_dict['Percent rejected by Hyperbola'],
+                                                "Percent improvement": results_dict['Percent improvement']
+                                                }
 
-            with open(json_savepath, 'w') as json_file:
-                json.dump(json_reduced_results_dict, json_file, sort_keys=True, indent=4)
-            if verbose is True:
-                print("Created {}".format(json_savepath.split('/')[-1]))
+                with open(json_savepath, 'w') as json_file:
+                    json.dump(json_reduced_results_dict, json_file, sort_keys=True, indent=4)
+                if verbose is True:
+                    print("Created {}".format(json_savepath.split('/')[-1]))
 
 
-    if make_reportCard is True:
-        reportCard_savepath = os.path.join(savepath, '{}_{}_{}_hyperReport.pdf'.format(obs.obsid, obs.target.replace(' ', '_'), obs.detector))
+        if make_reportCard is True:
+            reportCard_savepath = os.path.join(savepath, '{}_{}_{}_hyperReport.pdf'.format(obs.obsid, obs.target.replace(' ', '_'), obs.detector))
+            
+            if os.path.exists(reportCard_savepath) and overwrite is False:
+                print("{} exists and overwrite=False. Skipping.".format(reportCard_savepath.split('/')[-1]))
+            else:
+                if os.path.exists(reportCard_savepath) and verbose is True:
+                        print("Overwriting existing {}".format(reportCard_savepath.split('/')[-1]))
+                reportCard(obs, hyperscreen_results_dict=results_dict, show=show, reportCard_savepath=reportCard_savepath)
+
+                if verbose is True:
+                    print("Report Card generated for {} | {}, {} ksec, {:,} counts".format(
+                        obs.obsid, obs.detector, round(obs.exptime/1000.,2), obs.numevents))
         
-        if os.path.exists(reportCard_savepath) and overwrite is False:
-            print("{} exists and overwrite=False. Skipping.".format(reportCard_savepath.split('/')[-1]))
-        else:
-            if os.path.exists(reportCard_savepath) and verbose is True:
-                    print("Overwriting existing {}".format(reportCard_savepath.split('/')[-1]))
-            reportCard(obs, hyperscreen_results_dict=results_dict, show=show, reportCard_savepath=reportCard_savepath)
+        if make_fitsfiles is True:
+            evtscreen.screenHRCevt1(evt1file, hyperscreen_results_dict=results_dict, savepath=savepath, comparison_products=True, verbose=True)
 
-            if verbose is True:
-                print("Report Card generated for {} | {}, {} ksec, {:,} counts".format(
-                    obs.obsid, obs.detector, round(obs.exptime/1000.,2), obs.numevents))
-    
-    if make_fitsfiles is True:
-        evtscreen.screenHRCevt1(evt1file, hyperscreen_results_dict=results_dict, comparison_products=True, verbose=True)
-
-
-    # print("ERROR on {} ({} | {} ksec | {:,} events | {:,} good time events), pressing on".format(
-    #         obs.obsid, obs.detector, round(obs.exptime/1000, 2), obs.numevents, obs.goodtimeevents))
+    except Exception as exception_message:
+        print("ERROR on {} ({} | {} ksec | {:,} events | {:,} good time events), pressing on".format(
+                obs.obsid, obs.detector, round(obs.exptime/1000, 2), obs.numevents, obs.goodtimeevents))
+        print("Exception message is: {}".format(exception_message))
 
 
 

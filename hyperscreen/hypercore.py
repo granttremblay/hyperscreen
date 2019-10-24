@@ -57,6 +57,11 @@ class HRCevt1:
         self.gti = self.hdulist[2].data
         self.hdulist.close()  # Don't forget to close your fits file!
 
+        # Make sure the user isn't running this on an ACIS observation! 
+        if self.header["DETNAM"][:4] == 'ACIS':
+            raise Exception(
+                "ERROR: HRCevt1 Objects Can only be initialized for Chandra/HRC observations. This is a Chandra/ACIS observation.")
+
         fp_u, fb_u, fp_v, fb_v = self.calculate_fp_fb()
 
         self.gti.starts = self.gti['START']
