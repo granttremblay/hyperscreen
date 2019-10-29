@@ -41,6 +41,9 @@ def getArgs(argv=None):
     parser.add_argument('-v', '--verbose', action='store_true',
                         help='Make HyperScreen chatty on stdout.')
 
+    parser.add_argument('-l', '--limit', default=None,
+                        help='limit number of obs to run', type=int)
+
     return parser.parse_args(argv)
 
 
@@ -71,21 +74,24 @@ def parseJSONs(json_files, verbose=False):
     improvements = []
     legacy_percent = []
     hyperscreen_percent = []
+    numevents = []
 
     for json_file in json_files:
         if verbose is True:
             print("Parsing {}".format(json_file.split('/')[-1]))
         with open(json_file) as json_data:
             data = json.load(json_data)
-            exptimes.append(data['Exposure Time'])
+            exptimes.append(round(data['Exposure Time']/1000, 2))
+            numevents.append(data['Number of Events'])
             improvements.append(data['Percent improvement'])
             legacy_percent.append(data['Percent rejected by Hyperbola'])
             hyperscreen_percent.append(data['Percent rejected by Tapscreen'])
 
     trends_dict = {'Exposure Times': exptimes,
                    'Improvement': improvements,
+                   'Number of Events': numevents,
                    'Legacy Hyperbola Test Percent': legacy_percent,
-                   'Hyperscreen Percent': hypercore}
+                   'Hyperscreen Percent': hyperscreen_percent}
 
     return trends_dict
 
@@ -107,11 +113,57 @@ def main():  # pragma: no cover
             'Supplied results directory ({}) does not exist.'.format(results_dir))
 
     json_files = inventoryJSONs(results_dir, verbose=args.verbose)
-    trends_dict = parseJSONs(json_files, verbose=args.verbose)
+    if args.limit is None:
+        trends_dict = parseJSONs(json_files, verbose=args.verbose)
+    else:
+        trends_dict = parseJSONs(json_files[:args.limit], verbose=args.verbose)
 
     fig, ax = plt.subplots(figsize=(12, 8))
-    ax.plot(trends_dict['Exposure Times'],
-            trends_dict['Improvement'], linewidth=0, marker='.')
+    frame = ax.scatter(trends_dict['Exposure Times'],
+                       trends_dict['Improvement'], c=trends_dict['Number of Events'], cmap='viridis', s=20,)
+
+    cbar = plt.colorbar(frame, pad=0.005)
+    cbar.set_label("Number of Events")
+
+    ax.set_ylim(0, 100)
+
+    ax.set_xlabel('Exposure Time (ksec)')
+    ax.set_ylabel('Percent Improvement over Legacy Hyperbola Test')
+
+    plt.show()
+
+    fig, ax = plt.subplots(figsize=(12, 8))
+    frame = ax.scatter(trends_dict['Exposure Times'],
+                       trends_dict['Legacy Hyperbola Test Percent'], c=trends_dict['Number of Events'], cmap='viridis', s=20, label='Legacy Test')
+
+    ax.scatter(trends_dict['Exposure Times'],
+               trends_dict['Hyperscreen Percent'], c=trends_dict['Number of Events'], cmap='magma', s=20, label='HyperScreen')
+
+    cbar = plt.colorbar(frame, pad=0.005)
+    cbar.set_label("Number of Events")
+
+    ax.set_ylim(0, 100)
+
+    ax.set_xlabel('Exposure Time (ksec)')
+    ax.set_ylabel('Percent of Events Rejected')
+
+    ax.legend()
+
+    plt.show()
+
+    fig, ax = plt.subplots(figsize=(12, 8))
+    frame = ax.scatter(trends_dict['Hyperscreen Percent'],
+                       trends_dict['Legacy Hyperbola Test Percent'], c=trends_dict['Number of Events'], cmap='viridis', s=20, label='Legacy Test')
+
+    cbar = plt.colorbar(frame, pad=0.005)
+    cbar.set_label("Number of Events")
+
+    ax.set_ylim(0, 100)
+
+    ax.set_xlabel('Percent Rejected by Legacy Test')
+    ax.set_ylabel('Percent Rejected by HyperScreen')
+
+    ax.legend()
 
     plt.show()
 
