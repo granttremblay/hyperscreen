@@ -1,7 +1,6 @@
 
 .. image:: /docs/_static/hyperscreen_logo.png
 
-
 ===========
 HyperScreen
 ===========
