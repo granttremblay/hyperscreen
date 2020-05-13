@@ -71,8 +71,7 @@ class HRCevt1:
             raise Exception(
                 "ERROR: HRCevt1 Objects Can only be initialized for Chandra/HRC observations. This is a Chandra/ACIS observation.")
 
-        if self.verbose is True:
-            print(colorama.Fore.LIGHTRED_EX + 'Performing fp, fb calculations...', end=" ")
+        # Populate the fp, fb values for ever event
         fp_u, fb_u, fp_v, fb_v = self.calculate_fp_fb()
 
         self.gti.starts = self.gti['START']
@@ -264,7 +263,7 @@ class HRCevt1:
         if self.verbose is True:
             print("\nApplying Otsu's Method to every Tap-specific boomerang across U-axis taps {} through {}".format(taprange_u[0], taprange_u[-1]))
 
-        for tap in progressbar(taprange_u, disable=progressbar_disable):
+        for tap in progressbar(taprange_u, disable=progressbar_disable, ascii=False):
             # Do the U axis
             tapmask_u = data[data['crsu'] == tap].index.values
             if len(tapmask_u) < 20:
@@ -293,7 +292,7 @@ class HRCevt1:
         if self.verbose is True:
             print("\nApplying Otsu's Method to every Tap-specific boomerang across V-axis taps {} through {}".format(taprange_u[0], taprange_u[-1]))
 
-        for tap in progressbar(taprange_v, disable=progressbar_disable):
+        for tap in progressbar(taprange_v, disable=progressbar_disable, ascii=False):
             # Now do the V axis:
             tapmask_v = data[data['crsv'] == tap].index.values
             if len(tapmask_v) < 20:

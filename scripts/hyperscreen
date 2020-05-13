@@ -26,6 +26,8 @@ def getArgs(argv=None):
 
     parser.add_argument('input_fits_file', nargs='?')
 
+    parser.add_argument('-s', '--softening', default=0.5, type=float)
+
     parser.add_argument('-c', '--comparison_products', action='store_true',
                         help='Make additional HyperScreen result images (rejected events & difference map)')
 
@@ -38,7 +40,7 @@ def getArgs(argv=None):
     return parser.parse_args(argv)
 
 
-def screenHRCevt1(input_fits_file, hyperscreen_results_dict=None, comparison_products=True, savepath=None, verbose=True, backup=True):
+def screenHRCevt1(input_fits_file, softening=0.5, hyperscreen_results_dict=None, comparison_products=True, savepath=None, verbose=True, backup=True):
 
     obsid = fits.getheader(input_fits_file)['OBS_ID']
 
@@ -72,7 +74,7 @@ def screenHRCevt1(input_fits_file, hyperscreen_results_dict=None, comparison_pro
         if verbose is True:
             print("Applying HyperScreen algorithm to {}".format(file_name))
         obs = hypercore.HRCevt1(input_fits_file, verbose=True)
-        hyperscreen_results = obs.hyperscreen()
+        hyperscreen_results = obs.hyperscreen(softening=softening)
     else:
         hyperscreen_results = hyperscreen_results_dict
 
@@ -130,20 +132,23 @@ def main():
     elif os.path.isfile(args.input_fits_file):
         print("A FILE")
 
-    screenHRCevt1(args.input_fits_file, verbose=True,
+    screenHRCevt1(args.input_fits_file, softening=args.softening, verbose=True,
                   comparison_products=args.comparison_products)
 
 
 def awesome_banner():
 
     print(colorama.Fore.BLUE + ' ====================================     This   is    =====================================')
-    print(colorama.Fore.RED + """ __  __  __  __  ______  ______  ______  ______  ______  ______  ______  ______  __   __    
-/\ \_\ \/\ \_\ \/\  == \/\  ___\/\  == \/\  ___\/\  ___\/\  == \/\  ___\/\  ___\/\ "-.\ \  
-\ \  __ \ \____ \ \  _-/\ \  __\\ \  __<\ \___  \ \ \___\ \  __<\ \  __\\ \  __\\ \ \-.  \  
- \ \_\ \_\/\_____\ \_\   \ \_____\ \_\ \_\/\_____\ \_____\ \_\ \_\ \_____\ \_____\ \_\\"\_\ 
-  \/_/\/_/\/_____/\/_/    \/_____/\/_/ /_/\/_____/\/_____/\/_/ /_/\/_____/\/_____/\/_/ \/_/    
+    print(colorama.Fore.RED + """                    _   _                       _____                          
+                   | | | |                     /  ___|                         
+                   | |_| |_   _ _ __   ___ _ __\ `--.  ___ _ __ ___  ___ _ __  
+                   |  _  | | | | '_ \ / _ \ '__|`--. \/ __| '__/ _ \/ _ \ '_ \ 
+                   | | | | |_| | |_) |  __/ |  /\__/ / (__| | |  __/  __/ | | |
+                   \_| |_/\__, | .__/ \___|_|  \____/ \___|_|  \___|\___|_| |_|
+                           __/ | |                                             
+                          |___/|_|                                             
     """)
-    print(colorama.Fore.BLUE + ' ====================   CHANDRA / HRC BACKGROUND REDUCTION for the DARING   ================\n')
+    print(colorama.Fore.BLUE + ' ====================   CHANDRA / HRC BACKGROUND REJECTION for the DARING   ================\n')
 
 
 if __name__ == "__main__":
