@@ -7,6 +7,8 @@ for """
 from __future__ import division
 from __future__ import print_function
 
+import colorama
+from tqdm import tqdm as progressbar
 import sys
 import os
 
@@ -30,6 +32,8 @@ import pandas as pd
 import numpy as np
 np.seterr(divide='ignore')
 
+colorama.init()
+
 
 class HRCevt1:
     """This is a conceptual class representation of a Chandra High Resolution Camera (HRC) Level 1 Event File
@@ -41,7 +45,7 @@ class HRCevt1:
     def __init__(self, evt1file, verbose=False, as_astropy_table=False):
         """The constructor method for the HRCevt1 class
 
-        :param evt1file: A .fits (or fits.gz) file containing the level 1 event list. If downloaded from the Chandra database, this file always has a *evt1.fits extension. This event list includes all events telemetered.  
+        :param evt1file: A .fits (or fits.gz) file containing the level 1 event list. If downloaded from the Chandra database, this file always has a *evt1.fits extension. This event list includes all events telemetered.
         :type evt1file: .fits or .fits.gz
         :param verbose: Set verbose=True to make the constructor chatty on the command line, defaults to False
         :type verbose: bool, optional
@@ -49,6 +53,11 @@ class HRCevt1:
         :type as_astropy_table: bool, optional
         """
 
+        # Define how chatty to be
+        self.verbose = verbose
+
+        if self.verbose is True:
+            print(colorama.Fore.BLUE + '\nParsing HRC EVT1 file...', end=" ")
         # Do a standard read in of the EVT1 fits table
         self.filename = evt1file
         self.hdulist = fits.open(evt1file)
@@ -57,13 +66,19 @@ class HRCevt1:
         self.gti = self.hdulist[2].data
         self.hdulist.close()  # Don't forget to close your fits file!
 
-        # Make sure the user isn't running this on an ACIS observation! 
+        # Make sure the user isn't running this on an ACIS observation!
         if self.header["DETNAM"][:4] == 'ACIS':
             raise Exception(
-                "ERROR: HRCevt1 Objects Can only be initialized for Chandra/HRC observations. This is a Chandra/ACIS observation.")
+                "ERROR: HRCevt1 objects can only be initialized for Chandra/HRC observations. This is a Chandra/ACIS observation.")
 
+        # Populate the fp, fb values for ever event
+        if self.verbose is True:
+            print(colorama.Fore.BLUE + 'Calculating fp, fb values...', end=" ")
         fp_u, fb_u, fp_v, fb_v = self.calculate_fp_fb()
 
+        # Populate the fp, fb values for ever event
+        if self.verbose is True:
+            print(colorama.Fore.BLUE + 'Applying GTI mask... ', end=" ")
         self.gti.starts = self.gti['START']
         self.gti.stops = self.gti['STOP']
 
@@ -74,6 +89,9 @@ class HRCevt1:
         self.gtimask = (self.data["time"] > self.gti.starts[0]) & (
             self.data["time"] < self.gti.stops[-1])
 
+        # Populate the fp, fb values for ever event
+        if self.verbose is True:
+            print(colorama.Fore.BLUE + 'Populating metadata columns...', end=" ")
         self.data["fp_u"] = fp_u
         self.data["fb_u"] = fb_u
         self.data["fp_v"] = fp_v
@@ -137,18 +155,25 @@ class HRCevt1:
             warnings.warn("Number of Hyperbola Test Failures and Passes ({}) does not equal total number of events ({}).".format(
                 self.hyperbola_passes + self.hyperbola_failures, self.numevents))
 
+        if self.verbose is True:
+            print(colorama.Fore.GREEN + 'Done')
+
+        if self.verbose is True:
+            if as_astropy_table is True:
+                read_type = "Astropy Table"
+            else:
+                read_type = "Pandas DataFrame"
+            print(colorama.Fore.CYAN + 'Observation Details: ')
+            print(colorama.Fore.CYAN + 'ObsID {}  |    {}    |    {}      |      {} ksec'.format(self.obsid, self.target, self.detector, np.round(self.exptime/1000, 2)))
+            print(colorama.Fore.RED + '\nConverting EVT1 file to {}...'.format(read_type), end=" ")
+
         if as_astropy_table is False:
             # Multidimensional columns don't grok with Pandas
             self.data.remove_column('status')
             self.data = self.data.to_pandas()
 
-        if verbose is True:
-            if as_astropy_table is True:
-                read_type = "Astropy Table"
-            else:
-                read_type = "Pandas DataFrame"
-            print("HRC EVT1 file {} (ObsID {}, {}, {} ksec) initialized as new HRCevt1 {}. ".format(
-                evt1file.split('/')[-1], self.obsid, self.target, self.detector, read_type))
+        if self.verbose is True:
+            print(colorama.Fore.GREEN + 'Done')
 
     def __str__(self):
         """This method returns the string representation of the HRCevt1 object. It is called when the print() or str() function is invoked on an HRCevt1 object.
@@ -185,18 +210,20 @@ class HRCevt1:
         return fp_u, fb_u, fp_v, fb_v
 
     def threshold(self, img, bins, softening=None):
-        """HyperScreen (a) separates events by both axis and tap, (b) creates an 
-        image (a 2D histogram, with bin sizes dependent on the total number of counts 
-        in the observation), then (c) performs efficient image segmentation on that image 
-        by applying Otsu's Method (https://en.wikipedia.org/wiki/Otsu%27s_method) to 
-        create a bespoke threshold for each tap image. This efficiently separates the 'boomerang' 
-        locus for 'real' events with the 'everything else' region for background events. This function 
-        performs operation (c). 
+        """HyperScreen (a) separates events by both axis and tap, (b) creates an
+        image (a 2D histogram, with bin sizes dependent on the total number of counts
+        in the observation), then (c) performs efficient image segmentation on that image
+        by applying Otsu's Method (https://en.wikipedia.org/wiki/Otsu%27s_method) to
+        create a bespoke threshold for each tap image. This efficiently separates the 'boomerang'
+        locus for 'real' events with the 'everything else' region for background events. This function
+        performs operation (c).
 
         Arguments:
             img {[type]} -- [description]
             bins {[type]} -- [description]
         """
+
+        # You don't want to be verbose in this function; it's called many times
 
         thresh_img = img.copy()
         thresh_img[img == 0] = np.nan
@@ -215,7 +242,7 @@ class HRCevt1:
 
         return thresh_img
 
-    def hyperscreen(self, softening=0.2):
+    def hyperscreen(self, softening=1.0):
         """[summary]
 
         Returns:
@@ -224,7 +251,7 @@ class HRCevt1:
 
         data = self.data[self.data['Hyperbola test passed']]
 
-        #taprange = range(data['crsu'].min(), data['crsu'].max() + 1)
+        # taprange = range(data['crsu'].min(), data['crsu'].max() + 1)
         taprange_u = range(data['crsu'].min() - 1, data['crsu'].max() + 1)
         taprange_v = range(data['crsv'].min() - 1, data['crsv'].max() + 1)
 
@@ -237,7 +264,15 @@ class HRCevt1:
         u_axis_survivals = {}
         v_axis_survivals = {}
 
-        for tap in taprange_u:
+        if self.verbose is False:
+            progressbar_disable = True
+        elif self.verbose is True:
+            progressbar_disable = False
+
+        if self.verbose is True:
+            print(colorama.Fore.YELLOW + "\nApplying Otsu's Method to every Tap-specific boomerang across U-axis taps {} through {}".format(taprange_u[0] + 1, taprange_u[-1] + 1))
+
+        for tap in progressbar(taprange_u, disable=progressbar_disable, ascii=False):
             # Do the U axis
             tapmask_u = data[data['crsu'] == tap].index.values
             if len(tapmask_u) < 20:
@@ -263,7 +298,10 @@ class HRCevt1:
             u_axis_survivals["U Axis Tap {:02d}".format(
                 tap)] = pass_fb_u.index.values
 
-        for tap in taprange_v:
+        if self.verbose is True:
+            print(colorama.Fore.MAGENTA + "\n... doing the same for the V axis ...")
+
+        for tap in progressbar(taprange_v, disable=progressbar_disable, ascii=False):
             # Now do the V axis:
             tapmask_v = data[data['crsv'] == tap].index.values
             if len(tapmask_v) < 20:
@@ -291,6 +329,9 @@ class HRCevt1:
 
         # Done looping over taps
 
+        if self.verbose is True:
+            print(colorama.Fore.BLUE + "\nCollecting events that pass both U- and V-axis HyperScreen tests...", end=" ")
+
         u_all_survivals = np.concatenate(
             [x for x in u_axis_survivals.values()])
         v_all_survivals = np.concatenate(
@@ -304,7 +345,7 @@ class HRCevt1:
         num_survivals = sum(survival_mask)
         num_failures = sum(failure_mask)
 
-        percent_tapscreen_rejected = round(
+        percent_hyperscreen_rejected = round(
             ((num_failures / self.numevents) * 100), 2)
 
         # Do a sanity check to look for lost events. Shouldn't be any.
@@ -318,7 +359,15 @@ class HRCevt1:
             ((legacy_hyperbola_test_failures / self.goodtimeevents) * 100), 2)
 
         percent_improvement_over_legacy_test = round(
-            (percent_tapscreen_rejected - percent_legacy_hyperbola_test_rejected), 2)
+            (percent_hyperscreen_rejected - percent_legacy_hyperbola_test_rejected), 2)
+
+        if self.verbose is True:
+            print("Done")
+            print(colorama.Fore.GREEN + "HyperScreen rejected" + colorama.Fore.YELLOW + " {}% of all events".format(percent_hyperscreen_rejected) + colorama.Fore.GREEN +
+                  "\nThe Murray+ algorithm rejects" + colorama.Fore.MAGENTA + " {}% of all events".format(percent_legacy_hyperbola_test_rejected))
+
+            print(colorama.Fore.GREEN + "As long as the results pass sanity checks, this is a POTENTIAL improvement of " +
+                  colorama.Fore.WHITE + " {}%".format(percent_improvement_over_legacy_test))
 
         hyperscreen_results_dict = {"ObsID": self.obsid,
                                     "Target": self.target,
@@ -333,7 +382,7 @@ class HRCevt1:
                                     "All Survivals (event indices)": all_survivals,
                                     "All Survivals (boolean mask)": survival_mask,
                                     "All Failures (boolean mask)": failure_mask,
-                                    "Percent rejected by Tapscreen": percent_tapscreen_rejected,
+                                    "Percent rejected by Tapscreen": percent_hyperscreen_rejected,
                                     "Percent rejected by Hyperbola": percent_legacy_hyperbola_test_rejected,
                                     "Percent improvement": percent_improvement_over_legacy_test
                                     }
@@ -474,10 +523,10 @@ class HRCevt1:
 
         if mask is not None:
             self.ax.scatter(self.data['fb_u'], self.data['fp_u'],
-                            c=self.data['sumamps'], cmap='bone', s=0.3, alpha=0.8, rasterized=rasterized)
+                            c=self.data['sumamps'], cmap='bone', s=0.3, alpha=0.8, rasterized=rasterized, label='All Events')
 
             frame = self.ax.scatter(self.data['fb_u'][mask], self.data['fp_u'][mask],
-                                    c=self.data['sumamps'][mask], cmap=cmap, s=0.5, rasterized=rasterized)
+                                    c=self.data['sumamps'][mask], cmap=cmap, s=0.5, rasterized=rasterized, label='HyperScreen Accepted Events')
 
         else:
             frame = self.ax.scatter(self.data['fb_u'], self.data['fp_u'],
@@ -487,7 +536,7 @@ class HRCevt1:
             hyperzones, hypermasks = self.legacy_hyperbola_test(
                 tolerance=0.035)
             self.ax.plot(self.data["fb_u"], hyperzones["zone_u_lowerbound"],
-                         'o', markersize=0.3, color='black', alpha=0.8, rasterized=rasterized)
+                         'o', markersize=0.3, color='black', alpha=0.8, rasterized=rasterized, label='Murray Exclusion Hyperbola')
             self.ax.plot(self.data["fb_u"], -1 * hyperzones["zone_u_lowerbound"],
                          'o', markersize=0.3, color='black', alpha=0.8, rasterized=rasterized)
 
@@ -520,13 +569,12 @@ class HRCevt1:
 
         if savepath is not None:
             plt.savefig(savepath, dpi=150, bbox_inches='tight')
-            print('Saved boomerang figure to: {}'.format(savepath))
 
         plt.close()
 
     def image(self, masked_x=None, masked_y=None, xlim=None, ylim=None, detcoords=False, title=None, cmap=None, show=True, rasterized=True, savepath=None, create_subplot=False, ax=None):
-        """Create a quicklook image, in detector or sky coordinates, of the 
-        observation. The image will be binned to 400x400. 
+        """Create a quicklook image, in detector or sky coordinates, of the
+        observation. The image will be binned to 400x400.
 
         Keyword Arguments:
             masked_x {[type]} -- [description] (default: {None})
@@ -610,7 +658,7 @@ class HRCevt1:
 
 
 def styleplots():  # pragma: no cover
-    """Make the plots pretty. 
+    """Make the plots pretty.
     """
 
     mpl.rcParams['agg.path.chunksize'] = 10000
