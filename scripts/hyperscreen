@@ -69,7 +69,6 @@ def getArgs(argv=None):
     return parser.parse_args(argv)
 
 
-
 def main():
     '''
     Accept either an EVT1 file (.fits or .fits.gz) OR an ObsID Directory (e.g. 21218/) as input,
