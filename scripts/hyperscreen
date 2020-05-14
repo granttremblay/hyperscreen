@@ -21,10 +21,18 @@ colorama.init()
 
 
 def getArgs(argv=None):
+    """[summary]
+
+    Keyword Arguments:
+        argv {[type]} -- [description] (default: {None})
+
+    Returns:
+        Namespace -- An argparse parse_args() object containing command line arguments
+    """
     parser = argparse.ArgumentParser(
         description='Apply the HyperScreen algorithm to an ObsID direcotry or an HRC Level 1 Event File')
 
-    parser.add_argument('input_fits_file', nargs='?')
+    parser.add_argument('evt1FITS_or_obsidDir', nargs='?')
 
     parser.add_argument('-s', '--softening', default=0.5, type=float)
 
@@ -34,22 +42,40 @@ def getArgs(argv=None):
     parser.add_argument('-v', '--verbose', action='store_true',
                         help='Make HyperScreen chatty on stdout.')
 
+    parser.add_argument('-i', '--interactive', action='store_true', help='Run in interactive mode?')
+
     # parser.add_argument('-b', '--backup_dir', help='Absolute PATH to backup of EVT1 Files',
     #                     default=None)
 
     return parser.parse_args(argv)
 
 
-def screenHRCevt1(input_fits_file, softening=0.5, hyperscreen_results_dict=None, comparison_products=True, savepath=None, verbose=True, backup=True):
+def screenHRCevt1(evt1FITS_or_obsidDir, softening=0.5, hyperscreen_results_dict=None, comparison_products=True, savepath=None, verbose=True, backup=True):
+    """[summary]
 
-    obsid = fits.getheader(input_fits_file)['OBS_ID']
+    Arguments:
+        evt1FITS_or_obsidDir {[type]} -- [description]
+
+    Keyword Arguments:
+        softening {float} -- [description] (default: {0.5})
+        hyperscreen_results_dict {[type]} -- [description] (default: {None})
+        comparison_products {bool} -- [description] (default: {True})
+        savepath {[type]} -- [description] (default: {None})
+        verbose {bool} -- [description] (default: {True})
+        backup {bool} -- [description] (default: {True})
+
+    Raises:
+        Exception: [description]
+    """
+
+    obsid = fits.getheader(evt1FITS_or_obsidDir)['OBS_ID']
 
     # Get the root string to use as our naming convention
-    file_name = input_fits_file.split('/')[-1]  # Split off the path
+    file_name = evt1FITS_or_obsidDir.split('/')[-1]  # Split off the path
     # Split off the .fits (or .fits.gz)
     file_root = file_name.split('.fits')[0].split('_')[0]
-    file_path = os.path.realpath(os.path.dirname(input_fits_file))
-    print(file_path)
+    file_path = os.path.realpath(os.path.dirname(evt1FITS_or_obsidDir))
+
     if savepath is None:
         savepath = file_path
     backup_dir = os.path.join(
@@ -61,36 +87,23 @@ def screenHRCevt1(input_fits_file, softening=0.5, hyperscreen_results_dict=None,
             print("Made HyperScreen Products Directory {}".format(backup_dir))
 
     # Check if the passed input file is a string ending with .fits or .fits.gz
-    if isinstance(input_fits_file, str):
-        filetype_match = input_fits_file.split(
-            '.')[-1] == 'fits' or input_fits_file.split('.')[-1] == 'gz'
+    if isinstance(evt1FITS_or_obsidDir, str):
+        filetype_match = evt1FITS_or_obsidDir.split(
+            '.')[-1] == 'fits' or evt1FITS_or_obsidDir.split('.')[-1] == 'gz'
 
         if filetype_match is False:
             raise Exception(
-                'ERROR: Input given ({}) is not recognized as a .fits[.gz] or HRCevt1 object.'.format(input_fits_file))
+                'ERROR: Input given ({}) is not recognized as a .fits[.gz] or HRCevt1 object.'.format(evt1FITS_or_obsidDir))
 
     if hyperscreen_results_dict is None:
         # Then you need to make it!
         if verbose is True:
             print("Applying HyperScreen algorithm to {}".format(file_name))
-        obs = hypercore.HRCevt1(input_fits_file, verbose=True)
+        obs = hypercore.HRCevt1(evt1FITS_or_obsidDir, verbose=True)
         hyperscreen_results = obs.hyperscreen(softening=softening)
     else:
         hyperscreen_results = hyperscreen_results_dict
 
-    # if backup is True:
-    #     if not os.path.exists(backup_dir):
-    #         os.makedirs(backup_dir)
-    #         if verbose is True:
-    #             print("Made backup directory {}".format(backup_dir))
-
-    #     if verbose is True:
-    #         print("Backing up (copying) input fits file {} to {}".format(
-    #             input_fits_file.split('/')[-1], backup_dir))
-    #     copyfile(input_fits_file, os.path.join(
-    #         file_path, '{}_original_event_list.fits'.format(obsid)))
-
-    # hyperscreen_fits_file = file_path + '/hyperscreen_' + file_name
     hyperscreen_fits_file = os.path.join(file_path, 'hyperscreen_' + file_name)
 
     rejected_events_file = os.path.join(
@@ -100,7 +113,7 @@ def screenHRCevt1(input_fits_file, softening=0.5, hyperscreen_results_dict=None,
     survival_mask = hyperscreen_results['All Survivals (boolean mask)']
     failure_mask = hyperscreen_results['All Failures (boolean mask)']
 
-    with fits.open(input_fits_file) as hdul:
+    with fits.open(evt1FITS_or_obsidDir) as hdul:
         original_data = hdul[1].data
         hdul[1].data = hdul[1].data[survival_mask]
         if verbose is True:
@@ -119,36 +132,90 @@ def screenHRCevt1(input_fits_file, softening=0.5, hyperscreen_results_dict=None,
 
     original_evt1_file_path = os.path.join(
         file_path, '{}_original_event_list.fits'.format(obsid))
-    os.rename(input_fits_file, original_evt1_file_path)
+    os.rename(evt1FITS_or_obsidDir, original_evt1_file_path)
     print("Backed up original evt1 file to {}".format(original_evt1_file_path))
 
 
-def main():
-
-    args = getArgs()
-
-    if os.path.isdir(args.input_fits_file):
-        print("A DIRECTORY")
-    elif os.path.isfile(args.input_fits_file):
-        print("A FILE")
-
-    screenHRCevt1(args.input_fits_file, softening=args.softening, verbose=True,
-                  comparison_products=args.comparison_products)
-
-
 def awesome_banner():
+    """CLIs need epic banners
+    """
 
-    print(colorama.Fore.BLUE + ' ====================================     This   is    =====================================')
-    print(colorama.Fore.RED + """                    _   _                       _____                          
-                   | | | |                     /  ___|                         
-                   | |_| |_   _ _ __   ___ _ __\ `--.  ___ _ __ ___  ___ _ __  
-                   |  _  | | | | '_ \ / _ \ '__|`--. \/ __| '__/ _ \/ _ \ '_ \ 
-                   | | | | |_| | |_) |  __/ |  /\__/ / (__| | |  __/  __/ | | |
-                   \_| |_/\__, | .__/ \___|_|  \____/ \___|_|  \___|\___|_| |_|
-                           __/ | |                                             
-                          |___/|_|                                             
+    print(colorama.Fore.BLUE + ' ========================     This   is    =========================')
+    print(colorama.Fore.RED + """         _   _                       _____
+        | | | |                     /  ___|
+        | |_| |_   _ _ __   ___ _ __\ `--.  ___ _ __ ___  ___ _ __
+        |  _  | | | | '_ \ / _ \ '__|`--. \/ __| '__/ _ \/ _ \ '_ \
+        | | | | |_| | |_) |  __/ |  /\__/ / (__| | |  __/  __/ | | |
+        \_| |_/\__, | .__/ \___|_|  \____/ \___|_|  \___|\___|_| |_|
+                __/ | |
+               |___/|_|
     """)
-    print(colorama.Fore.BLUE + ' ====================   CHANDRA / HRC BACKGROUND REJECTION for the DARING   ================\n')
+    print(colorama.Fore.BLUE + ' ======   CHANDRA / HRC BACKGROUND REJECTION for the DARING   =====\n')
+
+
+def main():
+    '''
+    Accept either an EVT1 file (.fits or .fits.gz) OR an ObsID Directory (e.g. 21218/) as input,
+    read the EVT1 file, apply the hyperscreen algorithm, write a new EVT1 file,
+    '''
+    args = getArgs()
+    inputpath = os.path.abspath(args.evt1FITS_or_obsidDir)
+
+    # Decide whether the user gave an ObsID directory or an EVT1 Fits File
+    if os.path.isdir(inputpath):
+        inputdir = inputpath
+        globresult = glob.glob(os.path.join(inputdir, '*/hrc*evt1.fits*'), recursive=True)
+        if len(globresult) == 1:
+            evt1fitsfile = globresult[0]
+            if os.path.isfile(evt1fitsfile):
+                print(colorama.Fore.GREEN + 'HRC EVT1 File Found: {}'.format(evt1fitsfile))
+        else:
+            raise Exception(colorama.Fore.RED + 'ERROR: Something is wrong with the input directory {}'.format(inputdir))
+
+        hyperscreendir = inputdir + '/hyperscreen_results/'
+        secondarydir = inputdir + '/secondary/'
+
+        if os.path.isdir(secondarydir):
+            print(colorama.Fore.CYAN + 'Found /secondary/ within {}'.format(inputdir))
+        else:
+            raise Exception(colorama.Fore.RED +
+                            'ERROR: It looks like you may have intended to supply an ObsID Directory, but I cannot find {}/secondary/*_evt1.fits[.gz]'.format(inputdir))
+
+    elif os.path.isfile(inputpath):
+        try:
+            fits.getheader(inputpath)
+            evt1fitsfile = inputpath
+            print(colorama.Fore.GREEN + 'Found HRC EVT1 file {}'.format(evt1fitsfile))
+
+        except:
+            raise Exception(colorama.Fore.RED + "ERROR: It looks like you gave me a file, but it cannot be read. Are you sure it's an EVT1 FITS file?")
+    else:
+        raise Exception(colorama.Fore.RED + "ERROR: Input file no found: {}".format(inputpath))
+
+    # Regardless of how this tree played out, you should now have a proper EVT1 file. We want to create a hyperscreen/ directory
+    parent_dir = os.path.abspath(os.path.join(evt1fitsfile, os.pardir))
+    hyperscreen_results_dir = os.path.join(parent_dir, 'hyperscreen_results/')
+
+    print(colorama.Fore.BLUE + '\nHyperScreen result files will be placed in a new, adjacent directory: ' + colorama.Fore.YELLOW + '{}'.format(hyperscreen_results_dir))
+    if not os.path.exists(hyperscreen_results_dir):
+        os.makedirs(hyperscreen_results_dir)
+        print(colorama.Fore.MAGENTA + 'Making this directory now. It looks like this is the first time you are running HyperScreen on this EVT1 File.')
+    else:
+        print(colorama.Fore.MAGENTA + "This directory already exists, probably because youve run HyperScreen before. " +
+              colorama.Fore.RED + "\nThat's fine, but note that everything in it will be overwritten! \nHyperScreen is lossy, and so should only be run with one iteration on an EVT1 File!")
+
+    backup_evt1_filename = 'ORIGINAL_' + evt1fitsfile.split('/')[-1]
+    backup_evt1_path = os.path.join(hyperscreen_results_dir, backup_evt1_filename)
+    print(colorama.Fore.BLUE + '\nSaving a backup of the original EVT1 file to: ' + colorama.Fore.YELLOW + '{}'.format(backup_evt1_path))
+    copyfile(evt1fitsfile, backup_evt1_path)
+
+    obs = hypercore.HRCevt1(evt1fitsfile, verbose=True)
+
+    print(colorama.Fore.BLUE + '\nApplying HyperScreen to DataFrame with softening = {}'.format(args.softening))
+    hyperscreen_results = obs.hyperscreen(softening=args.softening)
+
+    # screenHRCevt1(args.evt1FITS_or_obsidDir, softening=args.softening, verbose=True,
+    #               comparison_products=args.comparison_products)
 
 
 if __name__ == "__main__":

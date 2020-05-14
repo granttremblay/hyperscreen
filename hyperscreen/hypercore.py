@@ -57,7 +57,7 @@ class HRCevt1:
         self.verbose = verbose
 
         if self.verbose is True:
-            print(colorama.Fore.RED + 'Parsing HRC EVT1 file...', end=" ")
+            print(colorama.Fore.BLUE + '\nParsing HRC EVT1 file...', end=" ")
         # Do a standard read in of the EVT1 fits table
         self.filename = evt1file
         self.hdulist = fits.open(evt1file)
@@ -69,11 +69,16 @@ class HRCevt1:
         # Make sure the user isn't running this on an ACIS observation!
         if self.header["DETNAM"][:4] == 'ACIS':
             raise Exception(
-                "ERROR: HRCevt1 Objects Can only be initialized for Chandra/HRC observations. This is a Chandra/ACIS observation.")
+                "ERROR: HRCevt1 objects can only be initialized for Chandra/HRC observations. This is a Chandra/ACIS observation.")
 
         # Populate the fp, fb values for ever event
+        if self.verbose is True:
+            print(colorama.Fore.LIGHTBLUE_EX + 'Calculating fp, fb values...', end=" ")
         fp_u, fb_u, fp_v, fb_v = self.calculate_fp_fb()
 
+        # Populate the fp, fb values for ever event
+        if self.verbose is True:
+            print(colorama.Fore.LIGHTCYAN_EX + 'Applying GTI mask... ', end=" ")
         self.gti.starts = self.gti['START']
         self.gti.stops = self.gti['STOP']
 
@@ -84,6 +89,9 @@ class HRCevt1:
         self.gtimask = (self.data["time"] > self.gti.starts[0]) & (
             self.data["time"] < self.gti.stops[-1])
 
+        # Populate the fp, fb values for ever event
+        if self.verbose is True:
+            print(colorama.Fore.LIGHTGREEN_EX + 'Populating metadata columns...', end=" ")
         self.data["fp_u"] = fp_u
         self.data["fb_u"] = fb_u
         self.data["fp_v"] = fp_v
@@ -155,8 +163,9 @@ class HRCevt1:
                 read_type = "Astropy Table"
             else:
                 read_type = "Pandas DataFrame"
+            print(colorama.Fore.CYAN + 'Observation Details: ')
             print(colorama.Fore.CYAN + 'ObsID {}  |    {}    |    {}      |      {} ksec'.format(self.obsid, self.target, self.detector, np.round(self.exptime/1000, 2)))
-            print(colorama.Fore.RED + 'Converting EVT1 file to {}...'.format(read_type), end=" ")
+            print(colorama.Fore.RED + '\nConverting EVT1 file to {}...'.format(read_type), end=" ")
 
         if as_astropy_table is False:
             # Multidimensional columns don't grok with Pandas
@@ -261,7 +270,7 @@ class HRCevt1:
             progressbar_disable = False
 
         if self.verbose is True:
-            print("\nApplying Otsu's Method to every Tap-specific boomerang across U-axis taps {} through {}".format(taprange_u[0], taprange_u[-1]))
+            print(colorama.Fore.YELLOW + "\nApplying Otsu's Method to every Tap-specific boomerang across U-axis taps {} through {}".format(taprange_u[0], taprange_u[-1]))
 
         for tap in progressbar(taprange_u, disable=progressbar_disable, ascii=False):
             # Do the U axis
@@ -290,7 +299,7 @@ class HRCevt1:
                 tap)] = pass_fb_u.index.values
 
         if self.verbose is True:
-            print("\nApplying Otsu's Method to every Tap-specific boomerang across V-axis taps {} through {}".format(taprange_u[0], taprange_u[-1]))
+            print(colorama.Fore.MAGENTA + "\n... doing the same for the V axis ...")
 
         for tap in progressbar(taprange_v, disable=progressbar_disable, ascii=False):
             # Now do the V axis:
@@ -321,7 +330,7 @@ class HRCevt1:
         # Done looping over taps
 
         if self.verbose is True:
-            print("Collecting events that pass both U- and V-axis HyperScreen tests")
+            print(colorama.Fore.BLUE + "\n Collecting events that pass both U- and V-axis HyperScreen tests")
 
         u_all_survivals = np.concatenate(
             [x for x in u_axis_survivals.values()])
