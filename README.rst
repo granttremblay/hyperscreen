@@ -45,6 +45,20 @@ Features
 * HyperScreen dynamically creates a hyperbolic acceptance zone on a *tap-by-tap* basis. 
 * TODO
 
+
+How to use HyperScreen
+----------------------
+
+``hyperscreen [HRC ObsID Directory]``, 
+
+for example, ``hyperscreen 1505``
+
+or
+
+``hyperscreen [HRC EVT1 .fits(.gz) file]``, 
+
+for example ``hyperscreen hrcf01505_001N004_evt1.fits.gz``
+
 Credits
 -------
 
