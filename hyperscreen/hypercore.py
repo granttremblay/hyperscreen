@@ -73,12 +73,12 @@ class HRCevt1:
 
         # Populate the fp, fb values for ever event
         if self.verbose is True:
-            print(colorama.Fore.LIGHTBLUE_EX + 'Calculating fp, fb values...', end=" ")
+            print(colorama.Fore.BLUE + 'Calculating fp, fb values...', end=" ")
         fp_u, fb_u, fp_v, fb_v = self.calculate_fp_fb()
 
         # Populate the fp, fb values for ever event
         if self.verbose is True:
-            print(colorama.Fore.LIGHTCYAN_EX + 'Applying GTI mask... ', end=" ")
+            print(colorama.Fore.BLUE + 'Applying GTI mask... ', end=" ")
         self.gti.starts = self.gti['START']
         self.gti.stops = self.gti['STOP']
 
@@ -91,7 +91,7 @@ class HRCevt1:
 
         # Populate the fp, fb values for ever event
         if self.verbose is True:
-            print(colorama.Fore.LIGHTGREEN_EX + 'Populating metadata columns...', end=" ")
+            print(colorama.Fore.BLUE + 'Populating metadata columns...', end=" ")
         self.data["fp_u"] = fp_u
         self.data["fb_u"] = fb_u
         self.data["fp_v"] = fp_v
@@ -270,7 +270,7 @@ class HRCevt1:
             progressbar_disable = False
 
         if self.verbose is True:
-            print(colorama.Fore.YELLOW + "\nApplying Otsu's Method to every Tap-specific boomerang across U-axis taps {} through {}".format(taprange_u[0], taprange_u[-1]))
+            print(colorama.Fore.YELLOW + "\nApplying Otsu's Method to every Tap-specific boomerang across U-axis taps {} through {}".format(taprange_u[0] + 1, taprange_u[-1] + 1))
 
         for tap in progressbar(taprange_u, disable=progressbar_disable, ascii=False):
             # Do the U axis
@@ -330,7 +330,7 @@ class HRCevt1:
         # Done looping over taps
 
         if self.verbose is True:
-            print(colorama.Fore.BLUE + "\n Collecting events that pass both U- and V-axis HyperScreen tests")
+            print(colorama.Fore.BLUE + "\nCollecting events that pass both U- and V-axis HyperScreen tests...", end=" ")
 
         u_all_survivals = np.concatenate(
             [x for x in u_axis_survivals.values()])
@@ -362,8 +362,12 @@ class HRCevt1:
             (percent_hyperscreen_rejected - percent_legacy_hyperbola_test_rejected), 2)
 
         if self.verbose is True:
-            print("\n DONE. HyperScreen rejected {} events, compared with the Legacy test's rejection of {} events.".format(
-                percent_hyperscreen_rejected, percent_legacy_hyperbola_test_rejected))
+            print("Done")
+            print(colorama.Fore.GREEN + "HyperScreen rejected" + colorama.Fore.YELLOW + " {}% of all events".format(percent_hyperscreen_rejected) + colorama.Fore.GREEN +
+                  "\nThe Murray+ algorithm rejects" + colorama.Fore.MAGENTA + " {}% of all events".format(percent_legacy_hyperbola_test_rejected))
+
+            print(colorama.Fore.GREEN + "As long as the results pass sanity checks, this is a POTENTIAL improvement of " +
+                  colorama.Fore.WHITE + " {}%".format(percent_improvement_over_legacy_test))
 
         hyperscreen_results_dict = {"ObsID": self.obsid,
                                     "Target": self.target,
@@ -519,10 +523,10 @@ class HRCevt1:
 
         if mask is not None:
             self.ax.scatter(self.data['fb_u'], self.data['fp_u'],
-                            c=self.data['sumamps'], cmap='bone', s=0.3, alpha=0.8, rasterized=rasterized)
+                            c=self.data['sumamps'], cmap='bone', s=0.3, alpha=0.8, rasterized=rasterized, label='All Events')
 
             frame = self.ax.scatter(self.data['fb_u'][mask], self.data['fp_u'][mask],
-                                    c=self.data['sumamps'][mask], cmap=cmap, s=0.5, rasterized=rasterized)
+                                    c=self.data['sumamps'][mask], cmap=cmap, s=0.5, rasterized=rasterized, label='HyperScreen Accepted Events')
 
         else:
             frame = self.ax.scatter(self.data['fb_u'], self.data['fp_u'],
@@ -532,7 +536,7 @@ class HRCevt1:
             hyperzones, hypermasks = self.legacy_hyperbola_test(
                 tolerance=0.035)
             self.ax.plot(self.data["fb_u"], hyperzones["zone_u_lowerbound"],
-                         'o', markersize=0.3, color='black', alpha=0.8, rasterized=rasterized)
+                         'o', markersize=0.3, color='black', alpha=0.8, rasterized=rasterized, label='Murray Exclusion Hyperbola')
             self.ax.plot(self.data["fb_u"], -1 * hyperzones["zone_u_lowerbound"],
                          'o', markersize=0.3, color='black', alpha=0.8, rasterized=rasterized)
 
@@ -565,7 +569,6 @@ class HRCevt1:
 
         if savepath is not None:
             plt.savefig(savepath, dpi=150, bbox_inches='tight')
-            print('Saved boomerang figure to: {}'.format(savepath))
 
         plt.close()
 
