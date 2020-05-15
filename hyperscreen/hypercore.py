@@ -164,7 +164,7 @@ class HRCevt1:
             else:
                 read_type = "Pandas DataFrame"
             print(colorama.Fore.CYAN + 'Observation Details: ')
-            print(colorama.Fore.CYAN + 'ObsID {}  |    {}    |    {}      |      {} ksec'.format(self.obsid, self.target, self.detector, np.round(self.exptime/1000, 2)))
+            print(colorama.Fore.CYAN + 'ObsID {}  |    {}    |    {}      |    {} ksec     |       {:,} counts (level 1 events in GTI)'.format(self.obsid, self.target, self.detector, np.round(self.exptime/1000, 2), self.goodtimeevents))
             print(colorama.Fore.RED + '\nConverting EVT1 file to {}...'.format(read_type), end=" ")
 
         if as_astropy_table is False:
@@ -272,10 +272,14 @@ class HRCevt1:
         if self.verbose is True:
             print(colorama.Fore.YELLOW + "\nApplying Otsu's Method to every Tap-specific boomerang across U-axis taps {} through {}".format(taprange_u[0] + 1, taprange_u[-1] + 1))
 
+        skiptaps_u = []
+        skiptaps_v = []
+
         for tap in progressbar(taprange_u, disable=progressbar_disable, ascii=False):
             # Do the U axis
             tapmask_u = data[data['crsu'] == tap].index.values
             if len(tapmask_u) < 20:
+                skiptaps_u.append((tap + 1, len(tapmask_u)))
                 continue
             keep_u = np.isfinite(data['fb_u'][tapmask_u])
 
@@ -299,12 +303,17 @@ class HRCevt1:
                 tap)] = pass_fb_u.index.values
 
         if self.verbose is True:
-            print(colorama.Fore.MAGENTA + "\n... doing the same for the V axis ...")
+            print("\nThe following {} U-axis taps were skipped due to a (very) low number of counts: ".format(len(skiptaps_u)))
+            for skipped_tap in skiptaps_u:
+                tapnum, counts = skipped_tap
+                print("Skipped U-axis Tap {}, which had {} count(s)".format(tapnum, counts))
+            print(colorama.Fore.MAGENTA + "\n... doing the same for the V axis taps {} through {}".format(taprange_v[0] + 1, taprange_v[-1] + 1))
 
         for tap in progressbar(taprange_v, disable=progressbar_disable, ascii=False):
             # Now do the V axis:
             tapmask_v = data[data['crsv'] == tap].index.values
             if len(tapmask_v) < 20:
+                skiptaps_v.append((tap + 1, len(tapmask_v)))
                 continue
             keep_v = np.isfinite(data['fb_v'][tapmask_v])
 
@@ -326,6 +335,12 @@ class HRCevt1:
 
             v_axis_survivals["V Axis Tap {:02d}".format(
                 tap)] = pass_fb_v.index.values
+
+        if self.verbose is True:
+            print("\nThe following {} V-axis taps were skipped due to a (very) low number of counts: ".format(len(skiptaps_v)))
+            for skipped_tap in skiptaps_v:
+                tapnum, counts = skipped_tap
+                print("Skipped V-axis Tap {}, which had {} count(s)".format(tapnum, counts))
 
         # Done looping over taps
 
@@ -363,11 +378,13 @@ class HRCevt1:
 
         if self.verbose is True:
             print("Done")
-            print(colorama.Fore.GREEN + "HyperScreen rejected" + colorama.Fore.YELLOW + " {}% of all events".format(percent_hyperscreen_rejected) + colorama.Fore.GREEN +
-                  "\nThe Murray+ algorithm rejects" + colorama.Fore.MAGENTA + " {}% of all events".format(percent_legacy_hyperbola_test_rejected))
+            print(colorama.Fore.GREEN + "HyperScreen rejected" + colorama.Fore.YELLOW + " {}% of all events ({:,} bad events /{:,} total events in GTI)".format(percent_hyperscreen_rejected, len(failure_mask), self.goodtimeevents) + colorama.Fore.GREEN +
+                  "\nThe Murray+ algorithm rejects" + colorama.Fore.MAGENTA + " {}% of all events ({:,} bad events /{:,} total events in GTI)".format(percent_legacy_hyperbola_test_rejected, legacy_hyperbola_test_failures, self.goodtimeevents))
 
-            print(colorama.Fore.GREEN + "As long as the results pass sanity checks, this is a POTENTIAL improvement of " +
-                  colorama.Fore.WHITE + " {}%".format(percent_improvement_over_legacy_test))
+            print(colorama.Fore.GREEN + "As long as the results pass sanity checks, this is a POTENTIAL improvement of \n" +
+                  colorama.Fore.BLUE + "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ POTENTIAL Improvement ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n" +
+                  colorama.Fore.WHITE + "                                      {}%\n".format(percent_improvement_over_legacy_test) +
+                  colorama.Fore.BLUE + "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n")
 
         hyperscreen_results_dict = {"ObsID": self.obsid,
                                     "Target": self.target,
