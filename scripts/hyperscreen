@@ -25,7 +25,7 @@ colorama.init()
 
 
 def awesome_banner():
-    """CLIs need epic banners
+    """CLIs need epic banners. 
     """
 
     print(colorama.Fore.BLUE + ' ======================     This   is    =======================', end="")
@@ -63,8 +63,6 @@ def getArgs(argv=None):
                         help='Make HyperScreen chatty on stdout.')
 
     parser.add_argument('-q', '--quiet', action='store_true', help='Silence verbosity?')
-
-
 
     # parser.add_argument('-b', '--backup_dir', help='Absolute PATH to backup of EVT1 Files',
     #                     default=None)
@@ -164,7 +162,8 @@ def main():
     hyperscreen_fits_path = os.path.join(hyperscreen_results_dir, hyperscreen_fits_filename)
 
     # Now write the FITS file
-    print(colorama.Fore.BLUE + '\nWriting {:,} HypserScreen-surviving events to this FITS file: '.format(np.sum(survival_mask)) + colorama.Fore.YELLOW + ' {}'.format(hyperscreen_fits_filename))
+    print(colorama.Fore.BLUE + '\nWriting {:,} HypserScreen-surviving events to this FITS file: '.format(np.sum(survival_mask)) +
+          colorama.Fore.YELLOW + ' {}'.format(hyperscreen_fits_filename))
     with fits.open(evt1fitsfile) as hdul:
         original_data = hdul[1].data
         hdul[1].data = hdul[1].data[survival_mask]
@@ -181,7 +180,8 @@ def main():
     rejected_events_fits_path = os.path.join(hyperscreen_results_dir, rejected_events_fits_filename)
 
     # Now write the rejected events FITS file
-    print(colorama.Fore.BLUE + '\nWriting {:,} Rejected Events (i.e. hopefully mostly background counts) to this FITS file: '.format(np.sum(failure_mask)) + colorama.Fore.YELLOW + ' {}'.format(rejected_events_fits_filename))
+    print(colorama.Fore.BLUE + '\nWriting {:,} Rejected Events (i.e. hopefully mostly background counts) to this FITS file: '.format(
+        np.sum(failure_mask)) + colorama.Fore.YELLOW + ' {}'.format(rejected_events_fits_filename))
     with fits.open(evt1fitsfile) as hdul:
         original_data = hdul[1].data
         hdul[1].data = hdul[1].data[failure_mask]
