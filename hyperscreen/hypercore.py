@@ -562,7 +562,7 @@ class HRCevt1:
         self.ax.grid(False)
 
         if title is None:
-            self.ax.set_title('{} | {} | ObsID {} | {} ksec | {} counts'.format(
+            self.ax.set_title('{} | {} | ObsID {} | {} ksec | {:,} counts'.format(
                 self.target, self.detector, self.obsid, round(self.exptime / 1000, 1), self.numevents))
         else:
             self.ax.set_title(title)

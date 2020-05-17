@@ -25,17 +25,17 @@ colorama.init()
 
 
 def awesome_banner():
-    """CLIs need epic banners. 
+    """CLIs need epic banners.
     """
 
     print(colorama.Fore.BLUE + ' ======================     This   is    =======================', end="")
     print(colorama.Fore.RED + """
-    __  __                      _____                         
-   / / / /_  ______  ___  _____/ ___/_____________  ___  ____ 
+    __  __                      _____
+   / / / /_  ______  ___  _____/ ___/_____________  ___  ____
   / /_/ / / / / __ \/ _ \/ ___/\__ \/ ___/ ___/ _ \/ _ \/ __ \\
  / __  / /_/ / /_/ /  __/ /   ___/ / /__/ /  /  __/  __/ / / /
-/_/ /_/\__, / .___/\___/_/   /____/\___/_/   \___/\___/_/ /_/ 
-      /____/_/                                                
+/_/ /_/\__, / .___/\___/_/   /____/\___/_/   \___/\___/_/ /_/
+      /____/_/
     """)
     print(colorama.Fore.BLUE + ' ====   CHANDRA / HRC BACKGROUND REJECTION for the DARING   ====\n')
 
@@ -146,7 +146,7 @@ def main(args):
 
     '''
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            HYPERSCREEN THE DATA 
+            HYPERSCREEN THE DATA
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     '''
     print(colorama.Fore.BLUE + '\nApplying HyperScreen to DataFrame with softening = {}'.format(args.softening))
@@ -176,7 +176,7 @@ def main(args):
 
     '''
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-       WRITE THE REJECTED EVENTS FILE 
+       WRITE THE REJECTED EVENTS FILE
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     '''
     # Make the new filename something like "hrcf12345_001N001_HyperScreen_evt1.fits.gz"
@@ -194,14 +194,33 @@ def main(args):
 
     '''
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-          MAKE THE BOOMERANG PLOT 
+    MAKE THE Legacy BOOMERANG PLOT
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     '''
 
-    boomerang_plot_filename = evt1fitsfile.split('/')[-1].split('_')[0] + '_boomerang_plot.png'
-    boomerang_plot_path = os.path.join(hyperscreen_results_dir, boomerang_plot_filename)
+    legacy_boomerang_plot_filename = evt1fitsfile.split('/')[-1].split('_')[0] + '_legacy_boomerang_plot.png'
+    legacy_boomerang_plot_path = os.path.join(hyperscreen_results_dir, legacy_boomerang_plot_filename)
 
-    obs.boomerang(savepath=boomerang_plot_path, mask=hyperscreen_results['U Axis All Survivals'], show=False)
+    title = '{} | {} | ObsID {} | {} ksec | {} counts'.format(obs.target, obs.detector, obs.obsid, round(obs.exptime / 1000, 1), obs.numevents)
+
+    print(colorama.Fore.BLUE + '\nMaking HyperScreen Boomerang Plot and saving to: ' + colorama.Fore.YELLOW + '{}'.format(legacy_boomerang_plot_filename))
+
+    obs.boomerang(savepath=legacy_boomerang_plot_path, mask=np.logical_not(obs.data['U hyperbolic test failed']), title=title, show=False)
+
+    '''
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    MAKE THE HyperScreen BOOMERANG PLOT
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    '''
+
+    hyperscreen_boomerang_plot_filename = evt1fitsfile.split('/')[-1].split('_')[0] + '_HyperScreen_boomerang_plot.png'
+    hyperscreen_boomerang_plot_path = os.path.join(hyperscreen_results_dir, hyperscreen_boomerang_plot_filename)
+
+    title = '{} | {} | ObsID {} | {} ksec | {} counts'.format(obs.target, obs.detector, obs.obsid, round(obs.exptime / 1000, 1), obs.numevents)
+
+    print(colorama.Fore.BLUE + '\nMaking HyperScreen Boomerang Plot and saving to: ' + colorama.Fore.YELLOW + '{}'.format(hyperscreen_boomerang_plot_filename))
+
+    obs.boomerang(savepath=hyperscreen_boomerang_plot_path, mask=hyperscreen_results['U Axis All Survivals'], title=title, show=False)
 
 
 if __name__ == "__main__":
