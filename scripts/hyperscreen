@@ -60,7 +60,7 @@ def getArgs(argv=None):
 
     parser.add_argument('evt1FITS_or_obsidDir', nargs='?')
 
-    parser.add_argument('-s', '--softening', default=0.5, type=float)
+    parser.add_argument('-s', '--softening', default=0.6, type=float)
 
     parser.add_argument('-c', '--comparison_products', action='store_true',
                         help='Make additional HyperScreen result images (rejected events & difference map)')
@@ -215,6 +215,6 @@ if __name__ == "__main__":
         blockPrint()
 
     awesome_banner()
-    main(args)  # pragma: no cover
+    main(args)
     runtime = round((time.time() - start_time) / 60, 3)
     sys.exit(print("\nFinished in {} minutes".format(runtime)))
