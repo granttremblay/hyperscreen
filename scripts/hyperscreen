@@ -40,6 +40,12 @@ def awesome_banner():
     print(colorama.Fore.BLUE + ' ====   CHANDRA / HRC BACKGROUND REJECTION for the DARING   ====\n')
 
 
+def blockPrint():
+    '''Allow for a system-wide CLI silencer by routing STDOUT to /dev/null
+    '''
+    sys.stdout = open(os.devnull, 'w')
+
+
 def getArgs(argv=None):
     """[summary]
 
@@ -70,13 +76,12 @@ def getArgs(argv=None):
     return parser.parse_args(argv)
 
 
-def main():
+def main(args):
     '''
     Accept either an EVT1 file (.fits or .fits.gz) OR an ObsID Directory (e.g. 21218/) as input,
     read the EVT1 file, apply the hyperscreen algorithm, write a new EVT1 file,
     '''
-    args = getArgs()
-    verbose = not(args.quiet)
+
     inputpath = os.path.abspath(args.evt1FITS_or_obsidDir)
 
     '''
@@ -166,7 +171,7 @@ def main():
           colorama.Fore.YELLOW + ' {}'.format(hyperscreen_fits_filename))
     with fits.open(evt1fitsfile) as hdul:
         original_data = hdul[1].data
-        hdul[1].data = hdul[1].data[survival_mask]
+        masked_data = original_data[survival_mask]
         hdul.writeto(hyperscreen_fits_path, overwrite=True)
 
     '''
@@ -184,7 +189,7 @@ def main():
         np.sum(failure_mask)) + colorama.Fore.YELLOW + ' {}'.format(rejected_events_fits_filename))
     with fits.open(evt1fitsfile) as hdul:
         original_data = hdul[1].data
-        hdul[1].data = hdul[1].data[failure_mask]
+        hdul[1].data = original_data[failure_mask]
         hdul.writeto(rejected_events_fits_path, overwrite=True)
 
     '''
@@ -202,7 +207,14 @@ def main():
 if __name__ == "__main__":
 
     start_time = time.time()
+
+    args = getArgs()
+
+    verbose = not(args.quiet)
+    if verbose is False:
+        blockPrint()
+
     awesome_banner()
-    main()  # pragma: no cover
+    main(args)  # pragma: no cover
     runtime = round((time.time() - start_time) / 60, 3)
     sys.exit(print("\nFinished in {} minutes".format(runtime)))

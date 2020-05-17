@@ -82,14 +82,10 @@ class HRCevt1:
         self.gti.starts = self.gti['START']
         self.gti.stops = self.gti['STOP']
 
-        self.gtimask = []
-        # for start, stop in zip(self.gti.starts, self.gti.stops):
-        #     self.gtimask = (self.data["time"] > start) & (self.data["time"] < stop)
-
         self.gtimask = (self.data["time"] > self.gti.starts[0]) & (
             self.data["time"] < self.gti.stops[-1])
 
-        # Populate the fp, fb values for ever event
+        # Populate the fp, fb values for every event
         if self.verbose is True:
             print(colorama.Fore.BLUE + 'Populating metadata columns...', end=" ")
         self.data["fp_u"] = fp_u
@@ -164,7 +160,8 @@ class HRCevt1:
             else:
                 read_type = "Pandas DataFrame"
             print(colorama.Fore.CYAN + 'Observation Details: ')
-            print(colorama.Fore.CYAN + 'ObsID {}  |    {}    |    {}      |    {} ksec     |       {:,} counts (level 1 events in GTI)'.format(self.obsid, self.target, self.detector, np.round(self.exptime/1000, 2), self.goodtimeevents))
+            print(colorama.Fore.CYAN + 'ObsID {}  |    {}    |    {}      |    {} ksec     |      {:,} counts (level 1 events)'.format(self.obsid,
+                                                                                                                                       self.target, self.detector, np.round(self.exptime/1000, 2), self.numevents))
             print(colorama.Fore.RED + '\nConverting EVT1 file to {}...'.format(read_type), end=" ")
 
         if as_astropy_table is False:
@@ -371,15 +368,15 @@ class HRCevt1:
         legacy_hyperbola_test_failures = sum(
             self.data['Hyperbola test failed'])
         percent_legacy_hyperbola_test_rejected = round(
-            ((legacy_hyperbola_test_failures / self.goodtimeevents) * 100), 2)
+            ((legacy_hyperbola_test_failures / self.numevents) * 100), 2)
 
         percent_improvement_over_legacy_test = round(
             (percent_hyperscreen_rejected - percent_legacy_hyperbola_test_rejected), 2)
 
         if self.verbose is True:
             print("Done")
-            print(colorama.Fore.GREEN + "HyperScreen rejected" + colorama.Fore.YELLOW + " {}% of all events ({:,} bad events /{:,} total events in GTI)".format(percent_hyperscreen_rejected, len(failure_mask), self.goodtimeevents) + colorama.Fore.GREEN +
-                  "\nThe Murray+ algorithm rejects" + colorama.Fore.MAGENTA + " {}% of all events ({:,} bad events /{:,} total events in GTI)".format(percent_legacy_hyperbola_test_rejected, legacy_hyperbola_test_failures, self.goodtimeevents))
+            print(colorama.Fore.GREEN + "HyperScreen rejected" + colorama.Fore.YELLOW + " {}% of all events ({:,} bad events / {:,} total events)".format(percent_hyperscreen_rejected, len(failure_mask), self.numevents) + colorama.Fore.GREEN +
+                  "\nThe Murray+ algorithm rejects" + colorama.Fore.MAGENTA + " {}% of all events ({:,} bad events / {:,} total events)".format(percent_legacy_hyperbola_test_rejected, legacy_hyperbola_test_failures, self.numevents))
 
             print(colorama.Fore.GREEN + "As long as the results pass sanity checks, this is a POTENTIAL improvement of \n" +
                   colorama.Fore.BLUE + "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ POTENTIAL Improvement ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n" +
