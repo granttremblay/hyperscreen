@@ -6,6 +6,7 @@
 from __future__ import division
 from __future__ import print_function
 
+
 from hyperscreen import hypercore
 import os
 import sys
@@ -100,7 +101,6 @@ def main(args):
         else:
             raise Exception(colorama.Fore.RED + 'ERROR: Something is wrong with the input directory {}'.format(inputdir))
 
-        hyperscreendir = inputdir + '/hyperscreen_results/'
         secondarydir = inputdir + '/secondary/'
 
         if os.path.isdir(secondarydir):
@@ -170,9 +170,10 @@ def main(args):
     print(colorama.Fore.BLUE + '\nWriting {:,} HypserScreen-surviving events to this FITS file: '.format(np.sum(survival_mask)) +
           colorama.Fore.YELLOW + ' {}'.format(hyperscreen_fits_filename))
     with fits.open(evt1fitsfile) as hdul:
-        original_data = hdul[1].data
-        masked_data = original_data[survival_mask]
-        hdul.writeto(hyperscreen_fits_path, overwrite=True)
+        new_hdul = hdul
+        new_hdul[1].data = hdul[1].data[survival_mask]
+        new_hdul[1].header['HYPRSCRN'] = ('{}'.format(args.softening), 'HYPERSCREEN Softening Parameter')
+        new_hdul.writeto(hyperscreen_fits_path, overwrite=True)
 
     '''
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -188,10 +189,19 @@ def main(args):
     print(colorama.Fore.BLUE + '\nWriting {:,} Rejected Events (i.e. hopefully mostly background counts) to this FITS file: '.format(
         np.sum(failure_mask)) + colorama.Fore.YELLOW + ' {}'.format(rejected_events_fits_filename))
     with fits.open(evt1fitsfile) as hdul:
-        original_data = hdul[1].data
-        hdul[1].data = original_data[failure_mask]
-        hdul.writeto(rejected_events_fits_path, overwrite=True)
+        new_hdul = hdul
+        new_hdul[1].data = hdul[1].data[failure_mask]
 
+        # Modify the new header to include HyperScreen info
+        # 9th keyword in the Primary header
+        new_hdul[0].header.insert(9, ('HYPRSCRN', 'APPLIED', 'NOTICE: HyperScreen Algorithm Applied'))
+        # 22, 23, and 24th keywords in the EVENTS header
+        new_hdul[1].header.insert(22, ('HYPRSCRN', 'APPLIED', 'HyperScreen has been applied to this HRC EVT1 file'))
+        new_hdul[1].header.insert(23, ('HYPRSCRN', 'APPLIED', 'HyperScreen has been applied to this HRC EVT1 file'))
+        new_hdul[1].header.insert(24, ('HYPRSOFT', '{}'.format(args.softening), 'HyperScreen Softening Paramter'))
+
+        # Write the new file
+        new_hdul.writeto(rejected_events_fits_path, overwrite=True)
     '''
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     MAKE THE Legacy BOOMERANG PLOT
@@ -222,13 +232,25 @@ def main(args):
 
     obs.boomerang(savepath=hyperscreen_boomerang_plot_path, mask=hyperscreen_results['U Axis All Survivals'], title=title, show=False)
 
+    '''
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+              MAKE IMAGES
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    '''
+
+    obs.image()
+
 
 if __name__ == "__main__":
 
+    # Start a timer
     start_time = time.time()
 
-    args = getArgs()
+    # Make plots pretty
+    hypercore.styleplots()
 
+    # Get command line arguments to pass to main(), define verbosity. The -q flag silences all STDOUT output.
+    args = getArgs()
     verbose = not(args.quiet)
     if verbose is False:
         blockPrint()

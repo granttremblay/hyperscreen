@@ -375,7 +375,7 @@ class HRCevt1:
 
         if self.verbose is True:
             print("Done")
-            print(colorama.Fore.GREEN + "HyperScreen rejected" + colorama.Fore.YELLOW + " {}% of all events ({:,} bad events / {:,} total events)".format(percent_hyperscreen_rejected, len(failure_mask), self.numevents) + colorama.Fore.GREEN +
+            print(colorama.Fore.GREEN + "HyperScreen rejected" + colorama.Fore.YELLOW + " {}% of all events ({:,} bad events / {:,} total events)".format(percent_hyperscreen_rejected, sum(failure_mask), self.numevents) + colorama.Fore.GREEN +
                   "\nThe Murray+ algorithm rejects" + colorama.Fore.MAGENTA + " {}% of all events ({:,} bad events / {:,} total events)".format(percent_legacy_hyperbola_test_rejected, legacy_hyperbola_test_failures, self.numevents))
 
             print(colorama.Fore.GREEN + "As long as the results pass sanity checks, this is a POTENTIAL improvement of \n" +
@@ -586,9 +586,9 @@ class HRCevt1:
 
         plt.close()
 
-    def image(self, masked_x=None, masked_y=None, xlim=None, ylim=None, detcoords=False, title=None, cmap=None, show=True, rasterized=True, savepath=None, create_subplot=False, ax=None):
+    def image(self, masked_x=None, masked_y=None, xlim=None, ylim=None, detcoords=False, title=None, cmap=None, show=True, rasterized=True, savepath=None, create_subplot=False, ax=None, nbins=(400, 400)):
         """Create a quicklook image, in detector or sky coordinates, of the
-        observation. The image will be binned to 400x400.
+        observation. The image will be binned to 400x400 by default.
 
         Keyword Arguments:
             masked_x {[type]} -- [description] (default: {None})
@@ -604,9 +604,6 @@ class HRCevt1:
             create_subplot {bool} -- [description] (default: {False})
             ax {[type]} -- [description] (default: {None})
         """
-
-        # Create the 2D histogram
-        nbins = (400, 400)
 
         if masked_x is not None and masked_y is not None:
             x = masked_x

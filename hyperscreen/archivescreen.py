@@ -6,7 +6,9 @@
 from __future__ import division
 from __future__ import print_function
 
-
+from hyperscreen import evtscreen
+from hyperscreen import hypercore
+import gc
 
 import os
 import sys
@@ -30,11 +32,6 @@ import matplotlib.pyplot as plt
 import warnings
 warnings.filterwarnings("ignore")
 
-import gc
-
-from hyperscreen import hypercore
-from hyperscreen import evtscreen
-
 
 def reportCard(evt1_object, hyperscreen_results_dict=None, reportCard_savepath=None, show=True, save=True, rasterized=True, dpi=150, verbose=False):  # pragma: no cover
 
@@ -43,7 +40,6 @@ def reportCard(evt1_object, hyperscreen_results_dict=None, reportCard_savepath=N
     if verbose is True:
         print("Doing {}, {}".format(obs.obsid, obs.detector))
 
-
     with PdfPages(reportCard_savepath) as pdf:
 
         # MAKE PAGE 1
@@ -51,25 +47,23 @@ def reportCard(evt1_object, hyperscreen_results_dict=None, reportCard_savepath=N
         fig, axes = plt.subplots(2, 2, figsize=(10, 10), sharey='row')
 
         obs.boomerang(mask=obs.data['Hyperbola test passed'], ax=axes[0, 0], create_subplot=True,
-                    show=False, title='Legacy Hyperbola Test', cmap='magma', rasterized=rasterized)
+                      show=False, title='Legacy Hyperbola Test', cmap='magma', rasterized=rasterized)
 
         obs.boomerang(mask=hyperscreen_results_dict['All Survivals (boolean mask)'], ax=axes[0, 1], create_subplot=True,
-                    show=False, title='HyperScreen', cmap='inferno', rasterized=rasterized)
+                      show=False, title='HyperScreen', cmap='inferno', rasterized=rasterized)
 
         obs.image(ax=axes[1, 0], detcoords=True, show=False,
-                create_subplot=True, title="Legacy Hyperbola Test", rasterized=rasterized)
+                  create_subplot=True, title="Legacy Hyperbola Test", rasterized=rasterized)
         obs.image(masked_x=obs.data['detx'][hyperscreen_results_dict['All Survivals (boolean mask)']],
-                masked_y=obs.data['dety'][hyperscreen_results_dict['All Survivals (boolean mask)']],
-                ax=axes[1, 1], detcoords=True, show=False,
-                create_subplot=True, title="HyperScreen", rasterized=rasterized)
+                  masked_y=obs.data['dety'][hyperscreen_results_dict['All Survivals (boolean mask)']],
+                  ax=axes[1, 1], detcoords=True, show=False,
+                  create_subplot=True, title="HyperScreen", rasterized=rasterized)
 
         fig.suptitle('ObsID {} | {} | {} | {} ksec | {:,} counts \n Percent Improvement: {}%'.format(
             obs.obsid, obs.target, obs.detector, round(obs.exptime/1000, 2), obs.numevents, hyperscreen_results_dict['Percent improvement']))
 
         if save is True:
             pdf.savefig(fig)
-    
-
 
 
     # # MAKE PAGE 2
@@ -141,7 +135,6 @@ def getArgs(argv=None):
     parser.add_argument('--showplots', action='store_true',  help='Show the plots on screen while running? This is a bad idea if you are screening more than few observations')
 
     parser.add_argument('--singlecore', action='store_true',  help='Disable multiprocessing and run archivescreen on a single core? Defaults to False.')
-
 
     return parser.parse_args(argv)
 
@@ -231,7 +224,7 @@ def screener(evt1file, verbose=False, savepath=None, make_reportCard=True, make_
 
     if verbose is True:
         print("Gathering HyperScreen performance statistics for {} | {}, {} ksec, {:,} counts".format(
-            obs.obsid, obs.detector, round(obs.exptime/1000.,2), obs.numevents))
+            obs.obsid, obs.detector, round(obs.exptime/1000., 2), obs.numevents))
 
     # if make_reportCard is True:
     #     reportCard(obs, show=show, savepath=savepath)
@@ -253,54 +246,52 @@ def screener(evt1file, verbose=False, savepath=None, make_reportCard=True, make_
                     print("Overwriting existing {}".format(json_savepath.split('/')[-1]))
                 # We don't want JSONify the full results dictionary (which includes embedded dictionaries!)
                 json_reduced_results_dict = {"ObsID": results_dict['ObsID'],
-                                                "Target": results_dict['Target'],
-                                                "Exposure Time": results_dict['Exposure Time'],
-                                                "Detector": results_dict['Detector'],
-                                                "Number of Events": results_dict['Number of Events'],
-                                                "Number of Good Time Events": results_dict['Number of Good Time Events'],
-                                                "All Survivals (event indices)": results_dict['All Survivals (event indices)'].tolist(), # YOU CAN'T JSONIFY AN NDARRAY. MUST MAKE IT A LIST!
-                                                "All Survivals (boolean mask)": results_dict['All Survivals (boolean mask)'].tolist(),
-                                                "All Failures (boolean mask)": results_dict['All Failures (boolean mask)'].tolist(),
-                                                "Percent rejected by Tapscreen": results_dict['Percent rejected by Tapscreen'],
-                                                "Percent rejected by Hyperbola": results_dict['Percent rejected by Hyperbola'],
-                                                "Percent improvement": results_dict['Percent improvement']
-                                                }
+                                             "Target": results_dict['Target'],
+                                             "Exposure Time": results_dict['Exposure Time'],
+                                             "Detector": results_dict['Detector'],
+                                             "Number of Events": results_dict['Number of Events'],
+                                             "Number of Good Time Events": results_dict['Number of Good Time Events'],
+                                             # YOU CAN'T JSONIFY AN NDARRAY. MUST MAKE IT A LIST!
+                                             "All Survivals (event indices)": results_dict['All Survivals (event indices)'].tolist(),
+                                             "All Survivals (boolean mask)": results_dict['All Survivals (boolean mask)'].tolist(),
+                                             "All Failures (boolean mask)": results_dict['All Failures (boolean mask)'].tolist(),
+                                             "Percent rejected by Tapscreen": results_dict['Percent rejected by Tapscreen'],
+                                             "Percent rejected by Hyperbola": results_dict['Percent rejected by Hyperbola'],
+                                             "Percent improvement": results_dict['Percent improvement']
+                                             }
 
                 with open(json_savepath, 'w') as json_file:
                     json.dump(json_reduced_results_dict, json_file, sort_keys=True, indent=4)
                 if verbose is True:
                     print("Created {}".format(json_savepath.split('/')[-1]))
 
-
         if make_reportCard is True:
             reportCard_savepath = os.path.join(savepath, '{}_{}_{}_hyperReport.pdf'.format(obs.obsid, obs.target.replace(' ', '_'), obs.detector))
-            
+
             if os.path.exists(reportCard_savepath) and overwrite is False:
                 print("{} exists and overwrite=False. Skipping.".format(reportCard_savepath.split('/')[-1]))
             else:
                 if os.path.exists(reportCard_savepath) and verbose is True:
-                        print("Overwriting existing {}".format(reportCard_savepath.split('/')[-1]))
+                    print("Overwriting existing {}".format(reportCard_savepath.split('/')[-1]))
                 reportCard(obs, hyperscreen_results_dict=results_dict, show=show, reportCard_savepath=reportCard_savepath)
 
                 if verbose is True:
                     print("Report Card generated for {} | {}, {} ksec, {:,} counts".format(
-                        obs.obsid, obs.detector, round(obs.exptime/1000.,2), obs.numevents))
-        
+                        obs.obsid, obs.detector, round(obs.exptime/1000., 2), obs.numevents))
+
         if make_fitsfiles is True:
             evtscreen.screenHRCevt1(evt1file, hyperscreen_results_dict=results_dict, savepath=savepath, comparison_products=True, verbose=True)
 
     except Exception as exception_message:
         print("ERROR on {} ({} | {} ksec | {:,} events | {:,} good time events), pressing on".format(
-                obs.obsid, obs.detector, round(obs.exptime/1000, 2), obs.numevents, obs.goodtimeevents))
+            obs.obsid, obs.detector, round(obs.exptime/1000, 2), obs.numevents, obs.goodtimeevents))
         print("Exception message is: {}".format(exception_message))
-
-
 
 
 
 def screenArchive(evt1_file_list, savepath=None, verbose=False, make_reportCard=True, make_fitsfiles=False, save_json=True, show=False, singlecore=False, overwrite=False):  # pragma: no cover
     """[summary]
-    
+
     Raises:
         Exception: [description]
     """
@@ -310,12 +301,12 @@ def screenArchive(evt1_file_list, savepath=None, verbose=False, make_reportCard=
 
         # This is how you pass a keyword argument to a pool.Map
         kwargs = {'verbose': verbose,  # be chatty
-                # save the products, like report cards and hyperscreen results list-'o-dicts
-                'savepath': savepath,
-                'make_reportCard': make_reportCard, # make report cards?
-                'make_fitsfiles': make_fitsfiles, # make FITS files? 
-                'show': show,
-                'overwrite': overwrite}  # show these? *** DEFINITELY a bad idea if you're screening more than 10 evt1 files! ***
+                  # save the products, like report cards and hyperscreen results list-'o-dicts
+                  'savepath': savepath,
+                  'make_reportCard': make_reportCard,  # make report cards?
+                  'make_fitsfiles': make_fitsfiles,  # make FITS files?
+                  'show': show,
+                  'overwrite': overwrite}  # show these? *** DEFINITELY a bad idea if you're screening more than 10 evt1 files! ***
 
         # Passing kwargs to poolScreen requires wrapping with partial()
         p.map(partial(screener, **kwargs), evt1_file_list)
@@ -324,7 +315,6 @@ def screenArchive(evt1_file_list, savepath=None, verbose=False, make_reportCard=
         p.close()
         p.join()
 
-
     elif singlecore is True:
 
         if verbose is True:
@@ -332,8 +322,6 @@ def screenArchive(evt1_file_list, savepath=None, verbose=False, make_reportCard=
 
         for obs in evt1_file_list:
             screener(obs, savepath=savepath, verbose=verbose, make_reportCard=make_reportCard, show=show, overwrite=overwrite)
-
-    
 
     # pickle_set = create_pickle is True and picklename is not None
     # pickle_unspecified = create_pickle is True and picklename is None
@@ -349,9 +337,6 @@ def screenArchive(evt1_file_list, savepath=None, verbose=False, make_reportCard=
     #         'create_pickle is True but picklename is None (i.e. unspecified). Please give a pickle name!')
 
 
-
-
-
 def main():  # pragma: no cover
     """[summary]
     """
@@ -362,7 +347,8 @@ def main():  # pragma: no cover
     evt1_files = inventoryArchive(
         archivepath, limit=None, verbose=args.verbose, sort=False)
 
-    screenArchive(evt1_files, savepath=savepath, verbose=args.verbose, make_reportCard=args.reportcard, make_fitsfiles=args.fitsfiles, save_json=args.save_json, show=args.showplots, singlecore=args.singlecore, overwrite=args.overwrite)
+    screenArchive(evt1_files, savepath=savepath, verbose=args.verbose, make_reportCard=args.reportcard, make_fitsfiles=args.fitsfiles,
+                  save_json=args.save_json, show=args.showplots, singlecore=args.singlecore, overwrite=args.overwrite)
 
     # improvement=[]
     # exptime=[]
